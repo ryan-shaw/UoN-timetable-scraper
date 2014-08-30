@@ -18,20 +18,20 @@ var ProgrammeModel = mongoose.model('Programme', ProgrammeSchema);
 
 // var programmes = require('./programme').getProgrammes();
 
-// For populating the database with programmes
+// // For populating the database with programmes
 // for(var i = 0; i < programmes.length; i++){
 //     var temp = programmes[i];
 //     var name = temp[0];
-//     var id = temp[1];
+//     var id = temp[2];
 //     var newProgramme = new ProgrammeModel({id: id, name: name});
 //     newProgramme.save();
 // }
 
-var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+var daysGlobal = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 
 var url = 'http://uiwwwsci01.nottingham.ac.uk:8003/reporting/TextSpreadsheet;programme+of+study;id;0003193%0D%0A?days=1-5&weeks=1-52&periods=3-20&template=SWSCUST+programme+of+study+TextSpreadsheet&height=100&week=100';
 var Table = function(){
-    var table = {}, tData, rowCount = 0, rows =[], $, days = [];
+    var table = {}, tData, rowCount = 0, rows =[], $, days = {};
 
     table.init = function(cheerio, data){
         $ = cheerio;
@@ -42,7 +42,7 @@ var Table = function(){
             var day = Day();
             day.init($, v);
             day.setDayName(days[k]);
-            days.push(day.getJSON());
+            days[daysGlobal[k]] = day.getJSON();
         });
     };
 
@@ -102,6 +102,10 @@ var Module = function(){
 
     return module;
 };
+
+app.get('/', function(req, res){
+    res.send('Please visit the <a href="https://github.com/ryanshawty/UoN-timetable-scraper">GitHub page</a>');
+});
 
 app.get('/scrape', function(req, res){
 	request(url, function(error, response, html){
