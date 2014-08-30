@@ -6,83 +6,69 @@ var cheerio = require('cheerio');
 var app     = express();
 
 // Hardcoded for now, much derp
-var url = 'http://uiwwwsci01.nottingham.ac.uk:8003/reporting/TextSpreadsheet;programme+of+study;id;0003193%0D%0A?days=1-5&weeks=1-52&periods=3-20&template=SWSCUST+programme+of+study+TextSpreadsheet&height=100&week=100';
+var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 
+var url = 'http://uiwwwsci01.nottingham.ac.uk:8003/reporting/TextSpreadsheet;programme+of+study;id;0003193%0D%0A?days=1-5&weeks=1-52&periods=3-20&template=SWSCUST+programme+of+study+TextSpreadsheet&height=100&week=100';
 var Table = function(){
     var table = {}, tData, rowCount = 0, rows =[], $;
 
     table.init = function(cheerio, data){
-        tData = data;
         $ = cheerio;
-        var firstRow = true;
+        data = data.slice(1);
         data.each(function(k, v){
-            // These are our TRs
-            if(firstRow){
-                firstRow = false;
+            if(k === 5)
                 return;
-            }
-            rows[rowCount++] = $(v);
+            var day = Day();
+            day.init($, v);
+            day.setDayName(days[k]);
         });
-        rowCount = 0; // Rest counter to 0
-    };
-
-    table.getRowTotal = function(){
-        return rows.length;
-    };
-
-    table.getCurrentRowCount = function(){
-        return rowCount;
-    };
-
-    table.getNextRow = function(){
-        return rows[rowCount++];
     };
 
     return table;
 }
 
-// Extract columns into array mainly
-var Row = function(){
-    var row = {}, rowData = [], column = 0;
-    row.init = function(data){
-        rowData = data;
-        return rowData;
+var Day = function(){
+    var day = {}, $, modules = [], dayName;
+    day.init = function(cheerio, data){
+        $ = cheerio;
+        var rows = $(data).find('tr').slice(1);
+        rows.each(function(k, v){
+            var module = Module();
+            module.init($, v);
+            modules.push(module);
+        });
+        console.log(modules);
     };
 
-    row.getNextColumn = function(){
-
+    day.setDayName = function(name){
+        dayName = name;
     };
-    return row;
-};
 
-var Combiner = function($, table){
-    // Take the > 5 rows and return 5 rows with combined table 
-    var dayCount = 0;
-    var saveNext = 0, saveWhere = 0;
-    var newRows = [];
-    for(var i = 0; i < table.getRowTotal(); i++){
-        var row = table.getNextRow();
-        var firstCol = row.children().first();
-        if(saveNext){
-            newRows[saveWhere].push(Row().init(row));
-            saveNext--;
-            continue;
-        }
-        var rowspan = firstCol.attr('rowspan');
-        if(rowspan > 1){
-            newRows[i] = [];
-            newRows[i].push(Row().init(row));
-            saveWhere = i;
-            saveNext = rowspan-1; // We've already saved 1 so -1
-        }
-        else{
-            console.log('We shouldn\'t get here, if we have there is an error with the data or formatting has changed');
-        }
+    day.getDayName = function(){
+        return dayName;
     }
-    return newRows;
+    return day;
 };
 
-var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+var Module = function(){
+    var module = {}, $, info = {};
+    module.init = function(cheerio, data){
+        $ = cheerio;
+        var cells = $(data).find('td');
+
+        info = {
+            'code': $(cells[0]).text(),
+            'name': $(cells[1]).text(),
+            'type': $(cells[2]).text(),
+            'time': {
+                'start': $(cells[5]).text(),
+                'end': $(cells[6]).text()
+            }
+        };
+    };
+    return module;
+};
+
 // app.get('/scrape', function(req, res){
 	request(url, function(error, response, html){
 
@@ -93,12 +79,10 @@ var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 
             var $ = cheerio.load(html);
 
-            var data = $('body').children().eq(1).children();
+            var data = $('body > table');
             var table = Table();
             table.init($, data); // Init table module with data
-
-            var newRows = Combiner($, table); // Combiner should return a useable data array :)
-            console.log(newRows);
+            // console.log(table.getData());
             // for(var day = 0; day < table.getRowTotal(); day++){ // Loop through monday -> friday
             //     // Need to combine the rows that are in the same day
             //     var newRows = Combiner()
