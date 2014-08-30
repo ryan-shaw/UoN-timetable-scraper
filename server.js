@@ -10,7 +10,7 @@ var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 
 var url = 'http://uiwwwsci01.nottingham.ac.uk:8003/reporting/TextSpreadsheet;programme+of+study;id;0003193%0D%0A?days=1-5&weeks=1-52&periods=3-20&template=SWSCUST+programme+of+study+TextSpreadsheet&height=100&week=100';
 var Table = function(){
-    var table = {}, tData, rowCount = 0, rows =[], $;
+    var table = {}, tData, rowCount = 0, rows =[], $, days = [];
 
     table.init = function(cheerio, data){
         $ = cheerio;
@@ -21,7 +21,12 @@ var Table = function(){
             var day = Day();
             day.init($, v);
             day.setDayName(days[k]);
+            days.push(day.getJSON());
         });
+    };
+
+    table.getJSON = function(){
+        return days;
     };
 
     return table;
@@ -35,9 +40,12 @@ var Day = function(){
         rows.each(function(k, v){
             var module = Module();
             module.init($, v);
-            modules.push(module);
+            modules.push(module.getJSON());
         });
-        console.log(modules);
+    };
+
+    day.getJSON = function(){
+        return modules;
     };
 
     day.setDayName = function(name){
@@ -66,6 +74,11 @@ var Module = function(){
             }
         };
     };
+
+    module.getJSON = function(){
+        return info;
+    };
+
     return module;
 };
 
@@ -87,7 +100,7 @@ app.get('/scrape', function(req, res){
             //     // Need to combine the rows that are in the same day
             //     var newRows = Combiner()
             // }
-res.send('yep');
+            res.json(table.getJSON());
 		}
 	})
 })
