@@ -14,16 +14,16 @@ var ProgrammeSchema = mongoose.Schema({
     id: String,
     name: String
 });
-var Programme = mongoose.model('Programme', ProgrammeSchema);
+var ProgrammeModel = mongoose.model('Programme', ProgrammeSchema);
 
-var programmes = require('./programme').getProgrammes();
+// var programmes = require('./programme').getProgrammes();
 
 // For populating the database with programmes
 // for(var i = 0; i < programmes.length; i++){
 //     var temp = programmes[i];
 //     var name = temp[0];
 //     var id = temp[1];
-//     var newProgramme = new Programme({id: id, name: name});
+//     var newProgramme = new ProgrammeModel({id: id, name: name});
 //     newProgramme.save();
 // }
 
@@ -113,7 +113,21 @@ app.get('/scrape', function(req, res){
             res.json(table.getJSON());
 		}
 	})
-})
+});
+
+app.get('/courses', function(req, res){
+    ProgrammeModel.find({}, function(err, programmes){
+        res.send(programmes);
+    });
+});
+
+app.get('/courses/:id', function(req, res){
+    var check = new RegExp("^[0-9a-fA-F]{24}$");
+    var filter = check.test(req.param('id')) ? {_id: req.param('id')} : {id: req.param('id')};
+    ProgrammeModel.findOne(filter, function(err, programmes){
+        res.send(programmes);
+    });
+});
 
 app.listen('80')
 exports = module.exports = app;
