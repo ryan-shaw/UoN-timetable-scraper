@@ -3,7 +3,7 @@ UoN Timetable scraper [ ![Codeship Status for ryanshawty/UoN-timetable-scraper](
 Open timetable and course API. Please refer to the [license](LICENSE) for licensing information.
 
 API Endpoints
----
+====
 Base URL
 ``http://uon-timetable-api.jit.su/``
 

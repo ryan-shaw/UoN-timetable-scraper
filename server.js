@@ -35,7 +35,7 @@ var Table = function(){
 
     table.init = function(cheerio, data){
         $ = cheerio;
-        data = data.slice(1);
+        data = data.slice(1, data.length-1);
         data.each(function(k, v){
             if(k === 5)
                 return;
@@ -92,7 +92,8 @@ var Module = function(){
             'time': {
                 'start': $(cells[5]).text(),
                 'end': $(cells[6]).text()
-            }
+            },
+            'room': $(cells[8]).text()
         };
     };
 
