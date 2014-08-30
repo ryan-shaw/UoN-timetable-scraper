@@ -1,12 +1,12 @@
+'use strict';
 var express = require('express');
 var fs = require('fs');
 var request = require('request');
 var cheerio = require('cheerio');
 var app     = express();
 
-// 
-
-var url = 'http://uiwwwsci01.nottingham.ac.uk:8003/reporting/Individual;programme+of+study;id;0003193%0D%0A?days=1-5&weeks=1-52&periods=3-20&template=SWSCUST+programme+of+study+Individual&height=100&week=100';
+// Hardcoded for now, much derp
+var url = 'http://uiwwwsci01.nottingham.ac.uk:8003/reporting/TextSpreadsheet;programme+of+study;id;0003193%0D%0A?days=1-5&weeks=1-52&periods=3-20&template=SWSCUST+programme+of+study+TextSpreadsheet&height=100&week=100';
 
 var Table = function(){
     var table = {}, tData, rowCount = 0, rows =[], $;
@@ -22,49 +22,64 @@ var Table = function(){
                 return;
             }
             rows[rowCount++] = $(v);
-            // $(v).children().each(function(k, v1){ // In here we have the columns
-            //     if(next > 0){
-
-            //         next--;
-            //     }
-            //     var row = $(v1).attr('rowspan');
-            //     if(typeof row !== 'undefined'){
-            //         whichDay++;
-            //         var next = row;
-            //     }else{
-            //         day.time++;
-            //     }
-            // })
         });
         rowCount = 0; // Rest counter to 0
-    }
+    };
 
-    table.getRowCount = function(){
+    table.getRowTotal = function(){
+        return rows.length;
+    };
+
+    table.getCurrentRowCount = function(){
         return rowCount;
-    }
+    };
 
     table.getNextRow = function(){
         return rows[rowCount++];
-    }
+    };
 
     return table;
 }
 
+// Extract columns into array mainly
 var Row = function(){
     var row = {}, rowData = [], column = 0;
     row.init = function(data){
-        firstCol = true;
-        data.each(function(k,v){
-            if(firstCol){
-                // Check if day col rowspan will be defined.
-            }
-        });
+        rowData = data;
+        return rowData;
     };
 
     row.getNextColumn = function(){
 
     };
     return row;
+};
+
+var Combiner = function($, table){
+    // Take the > 5 rows and return 5 rows with combined table 
+    var dayCount = 0;
+    var saveNext = 0, saveWhere = 0;
+    var newRows = [];
+    for(var i = 0; i < table.getRowTotal(); i++){
+        var row = table.getNextRow();
+        var firstCol = row.children().first();
+        if(saveNext){
+            newRows[saveWhere].push(Row().init(row));
+            saveNext--;
+            continue;
+        }
+        var rowspan = firstCol.attr('rowspan');
+        if(rowspan > 1){
+            newRows[i] = [];
+            newRows[i].push(Row().init(row));
+            saveWhere = i;
+            saveNext = rowspan-1; // We've already saved 1 so -1
+        }
+        else{
+            console.log('We shouldn\'t get here, if we have there is an error with the data or formatting has changed');
+        }
+    }
+    return newRows;
 };
 
 var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
@@ -81,11 +96,13 @@ var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
             var data = $('body').children().eq(1).children();
             var table = Table();
             table.init($, data); // Init table module with data
-            // console.log('Day: ', days[table.getRowCount()], table.getNextRow());  // Get next data row
 
-            for(var day = 0; day < 5; day++){ // Loop through monday -> friday
-                console.log(days[table.getRowCount()], table.getNextRow());
-            }
+            var newRows = Combiner($, table); // Combiner should return a useable data array :)
+            console.log(newRows);
+            // for(var day = 0; day < table.getRowTotal(); day++){ // Loop through monday -> friday
+            //     // Need to combine the rows that are in the same day
+            //     var newRows = Combiner()
+            // }
 
 		}
 	})
