@@ -8,5 +8,8 @@
     "express"    : "latest",
     "request"    : "latest",
     "cheerio"    : "latest"
+  },
+  "scripts":{
+    "start": "node server.js"
   }
 }
