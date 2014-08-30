@@ -1,15 +1,19 @@
 {
-  "name"         : "uon-timetable-scraper",
-  "version"      : "0.0.1",
-  "description"  : "Scraper",
-  "main"         : "server.js",
-  "author"       : "Ryan",
-  "dependencies" : {
-    "express"    : "latest",
-    "request"    : "latest",
-    "cheerio"    : "latest"
+  "name": "uon-timetable-scraper",
+  "version": "0.0.1",
+  "description": "Scraper",
+  "main": "server.js",
+  "author": "Ryan",
+  "dependencies": {
+    "express": "latest",
+    "request": "latest",
+    "cheerio": "latest"
   },
-  "scripts":{
+  "scripts": {
     "start": "node server.js"
+  },
+  "subdomain": "uon-timetable-api",
+  "engines": {
+    "node": "0.10.x"
   }
 }
