@@ -16,6 +16,13 @@ var ProgrammeSchema = mongoose.Schema({
 });
 var ProgrammeModel = mongoose.model('Programme', ProgrammeSchema);
 
+var CourseModulesSchema = mongoose.Schema({
+    course_id: String,
+    data: Object,
+    time_stamp: {type: Date, default: Date.now}
+});
+var CourseModulesModel = mongoose.model('CourseModules', CourseModulesSchema);
+
 // var programmes = require('./programme').getProgrammes();
 
 // // For populating the database with programmes
@@ -28,8 +35,9 @@ var ProgrammeModel = mongoose.model('Programme', ProgrammeSchema);
 // }
 
 var daysGlobal = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+var url_base = 'http://uiwwwsci01.nottingham.ac.uk:8003/reporting/TextSpreadsheet;programme+of+study;id;';
+var url_top = '%0D%0A?days=1-5&weeks=1-52&periods=3-20&template=SWSCUST+programme+of+study+TextSpreadsheet&height=100&week=100';
 
-var url = 'http://uiwwwsci01.nottingham.ac.uk:8003/reporting/TextSpreadsheet;programme+of+study;id;0003193%0D%0A?days=1-5&weeks=1-52&periods=3-20&template=SWSCUST+programme+of+study+TextSpreadsheet&height=100&week=100';
 var Table = function(){
     var table = {}, tData, rowCount = 0, rows =[], $, days = {};
 
@@ -108,16 +116,38 @@ app.get('/', function(req, res){
     res.send('Please visit the <a href="https://github.com/ryanshawty/UoN-timetable-scraper">GitHub page</a>');
 });
 
-app.get('/scrape', function(req, res){
-	request(url, function(error, response, html){
-        if(!error){
-            var $ = cheerio.load(html);
-            var data = $('body > table');
-            var table = Table();
-            table.init($, data); // Init table module with data
-            res.json(table.getJSON());
-		}
-	})
+app.get('/scrape/:id', function(req, res){
+    var id = req.param('id');//0003193
+    var url = url_base + id + url_top;
+    CourseModulesModel.findOne({course_id: id}, function(err, course){
+        if(course){
+            var now = Date.now();
+            if(now - course.time_stamp.getTime() > 1000 * 60 * 60 * 24){ // 24 hour expiry
+                // Data is stale
+                refresh();
+            }else{
+                // Data is fresh
+                res.json(course.data);
+            }
+        }else{
+            // No data exists
+            refresh();
+        }
+    });
+
+    function refresh(){
+        request(url, function(error, response, html){
+            if(!error){
+                var $ = cheerio.load(html);
+                var data = $('body > table');
+                var table = Table();
+                table.init($, data); // Init table module with data
+                res.json(table.getJSON());
+                var newCourse = new CourseModulesModel({course_id: id, data: table.getJSON()});
+                newCourse.save();
+            }
+        })
+    }
 });
 
 app.get('/courses', function(req, res){
