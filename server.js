@@ -69,7 +69,7 @@ var Module = function(){
     return module;
 };
 
-// app.get('/scrape', function(req, res){
+app.get('/scrape', function(req, res){
 	request(url, function(error, response, html){
 
         // First we'll check to make sure no errors occurred when making the request
@@ -90,8 +90,7 @@ var Module = function(){
 
 		}
 	})
-// })
+})
 
-app.listen('8081')
-console.log('Magic happens on port 8081');
+app.listen('80')
 exports = module.exports = app;
