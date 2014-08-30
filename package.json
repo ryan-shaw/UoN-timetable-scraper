@@ -1,0 +1,12 @@
+{
+  "name"         : "uon-timetable-scraper",
+  "version"      : "0.0.1",
+  "description"  : "Scraper",
+  "main"         : "app.js",
+  "author"       : "Ryan",
+  "dependencies" : {
+    "express"    : "latest",
+    "request"    : "latest",
+    "cheerio"    : "latest"
+  }
+}
