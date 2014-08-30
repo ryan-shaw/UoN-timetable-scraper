@@ -87,7 +87,7 @@ app.get('/scrape', function(req, res){
             //     // Need to combine the rows that are in the same day
             //     var newRows = Combiner()
             // }
-
+res.send('yep');
 		}
 	})
 })
