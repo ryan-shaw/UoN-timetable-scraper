@@ -7,7 +7,8 @@
   "dependencies": {
     "express": "latest",
     "request": "latest",
-    "cheerio": "latest"
+    "cheerio": "latest",
+    "mongoose": "~3.8.15"
   },
   "scripts": {
     "start": "node server.js"

@@ -4,8 +4,29 @@ var fs = require('fs');
 var request = require('request');
 var cheerio = require('cheerio');
 var app     = express();
+var mongoose = require('mongoose');
 
-// Hardcoded for now, much derp
+// Mongo connect
+var mongouri = process.env.MONGO_URI;
+mongoose.connect(mongouri);
+
+var ProgrammeSchema = mongoose.Schema({
+    id: String,
+    name: String
+});
+var Programme = mongoose.model('Programme', ProgrammeSchema);
+
+var programmes = require('./programme').getProgrammes();
+
+// For populating the database with programmes
+// for(var i = 0; i < programmes.length; i++){
+//     var temp = programmes[i];
+//     var name = temp[0];
+//     var id = temp[1];
+//     var newProgramme = new Programme({id: id, name: name});
+//     newProgramme.save();
+// }
+
 var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 
 var url = 'http://uiwwwsci01.nottingham.ac.uk:8003/reporting/TextSpreadsheet;programme+of+study;id;0003193%0D%0A?days=1-5&weeks=1-52&periods=3-20&template=SWSCUST+programme+of+study+TextSpreadsheet&height=100&week=100';
@@ -84,22 +105,11 @@ var Module = function(){
 
 app.get('/scrape', function(req, res){
 	request(url, function(error, response, html){
-
-        // First we'll check to make sure no errors occurred when making the request
-
         if(!error){
-            // Next, we'll utilize the cheerio library on the returned html which will essentially give us jQuery functionality
-
             var $ = cheerio.load(html);
-
             var data = $('body > table');
             var table = Table();
             table.init($, data); // Init table module with data
-            // console.log(table.getData());
-            // for(var day = 0; day < table.getRowTotal(); day++){ // Loop through monday -> friday
-            //     // Need to combine the rows that are in the same day
-            //     var newRows = Combiner()
-            // }
             res.json(table.getJSON());
 		}
 	})
