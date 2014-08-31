@@ -9,7 +9,8 @@
     "request": "latest",
     "cheerio": "latest",
     "mongoose": "~3.8.15",
-    "q": "~1.0.1"
+    "q": "~1.0.1",
+    "dotenv": "~0.4.0"
   },
   "scripts": {
     "start": "node server.js"
@@ -19,7 +20,6 @@
     "node": "0.10.x"
   },
   "devDependencies": {
-    "nodeunit": "~0.9.0",
-    "dotenv": "~0.4.0"
+    "nodeunit": "~0.9.0"
   }
 }

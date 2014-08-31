@@ -1,7 +1,7 @@
 var API = require('./api.js');
 require('dotenv').load();
 
-exports['check for 5 days'] = function(test){
+exports['check course scraper'] = function(test){
 	var course = API.CourseScraper().init('0003193');
 	test.expect(1);
 	course.then(function(data){
@@ -12,7 +12,7 @@ exports['check for 5 days'] = function(test){
 		        count++;
 		    }
 		}
-		test.ok(count === 5);		
+		test.ok(count === 5, '5 days');		
 		test.done();
     }, function(err){
     	console.log(err);
