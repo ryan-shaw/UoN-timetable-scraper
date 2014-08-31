@@ -12,9 +12,13 @@ exports['check for 5 days'] = function(test){
 		        count++;
 		    }
 		}
-		test.equal(count, 5);		
+		test.ok(count === 5);		
 		test.done();
     }, function(err){
     	console.log(err);
     });
+};
+
+exports.tearDown = function(done){
+	API.close(done);
 };

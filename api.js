@@ -172,3 +172,9 @@ exports.CourseScraper = function(){
     };
     return scraper;
 };
+
+exports.close = function(done){
+    mongoose.disconnect(function(err){
+        done();
+    });
+};
