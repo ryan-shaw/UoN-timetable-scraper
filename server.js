@@ -36,5 +36,7 @@ app.get('/api/courses/:id', function(req, res){
     });
 });
 
+app.use('/', express.static(__dirname + '/dist'));
+
 app.listen('80');
 exports = module.exports = app;
