@@ -26,7 +26,13 @@ app.get('/courses', function(req, res){
 
 app.get('/courses/:id', function(req, res){
     API.getCourse(req.param('id'), function(data){
-        res.send(data);
+        var courseData = {};
+        courseData.name = data.name;
+        var course = API.CourseScraper().init(req.param('id'));
+        course.then(function(data){
+            courseData.modules = data;
+            res.json(courseData);
+        });
     });
 });
 
