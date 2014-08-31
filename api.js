@@ -35,6 +35,20 @@ var daysGlobal = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 var url_base = 'http://uiwwwsci01.nottingham.ac.uk:8003/reporting/TextSpreadsheet;programme+of+study;id;';
 var url_top = '%0D%0A?days=1-5&weeks=1-52&periods=3-20&template=SWSCUST+programme+of+study+TextSpreadsheet&height=100&week=100';
 
+exports.getCourse = function(id, callback){
+    var check = new RegExp("^[0-9a-fA-F]{24}$");
+    var filter = check.test(id) ? {_id: id} : {id: id};
+    ProgrammeModel.findOne(filter, function(err, programme){
+        callback(programme);
+    });
+};
+
+exports.getCourses = function(callback){
+    ProgrammeModel.find({}, function(err, programmes){
+        callback(programmes);
+    });
+};
+
 exports.Table = function(){
     var table = {}, tData, rowCount = 0, rows =[], $, days = {};
 

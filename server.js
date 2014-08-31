@@ -19,16 +19,14 @@ app.get('/scrape/:id', function(req, res){
 });
 
 app.get('/courses', function(req, res){
-    API.ProgrammeModel.find({}, function(err, programmes){
-        res.send(programmes);
-    });
+    API.getCourses(function(data){
+        res.send(data);
+    })
 });
 
 app.get('/courses/:id', function(req, res){
-    var check = new RegExp("^[0-9a-fA-F]{24}$");
-    var filter = check.test(req.param('id')) ? {_id: req.param('id')} : {id: req.param('id')};
-    API.ProgrammeModel.findOne(filter, function(err, programmes){
-        res.send(programmes);
+    API.getCourse(req.param('id'), function(data){
+        res.send(data);
     });
 });
 
