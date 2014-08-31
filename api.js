@@ -132,6 +132,7 @@ exports.CourseScraper = function(){
                 var table = exports.Table();
                 table.init($, data); // Init table module with data
                 deferred.resolve(table.getJSON());
+                CourseModulesModel.find({course_id: id}).remove().exec();
                 var newCourse = new CourseModulesModel({course_id: id, data: table.getJSON()});
                 newCourse.save();
             }
@@ -152,7 +153,7 @@ exports.CourseScraper = function(){
             }
             if(course){
                 var now = Date.now();
-                if(now - course.time_stamp.getTime() > 10){ // 24 hour expiry
+                if(now - course.time_stamp.getTime() > 1000 * 60 * 60 * 24){ // 24 hour expiry
                     // Data is stale
                     refresh(url).then(function(data){
                         deferred.resolve(data);
