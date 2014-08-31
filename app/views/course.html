@@ -1,0 +1,26 @@
+<h2>{{course.name}}</h2>
+
+<div ng-repeat="day in course.days">
+	<h3>{{day.day_name}}</h3>
+	<table class="table table-responsive table-striped">
+		<thead>
+			<tr><th>Name</th><th>Time</th><th>Type</th><th>Room</th><th></th></tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="module in day.modules">
+				<td width="40%">{{module.name}}</td>
+				<td width="15%">{{module.time.start}} - {{module.time.end}}</td>
+				<td width="15%">{{module.type}}</td>
+				<td width="20%">{{module.room}}</td>
+				<td width="10%">
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" ng-init="module.use = true" ng-model="module.use"> I do this
+						</label>
+					</div>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+<!-- <pre>{{course | json}}</pre> -->

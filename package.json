@@ -1,6 +1,6 @@
 {
   "name": "uon-timetable-scraper",
-  "version": "1.0.0",
+  "version": "1.0.0-8",
   "description": "Scraper",
   "main": "server.js",
   "author": "Ryan",

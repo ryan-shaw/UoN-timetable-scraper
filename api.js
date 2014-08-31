@@ -50,7 +50,7 @@ exports.getCourses = function(callback){
 };
 
 exports.Table = function(){
-    var table = {}, tData, rowCount = 0, rows =[], $, days = {};
+    var table = {}, tData, rowCount = 0, rows =[], $, days = [];
 
     table.init = function(cheerio, data){
         $ = cheerio;
@@ -60,8 +60,9 @@ exports.Table = function(){
                 return;
             var day = exports.Day();
             day.init($, v);
-            day.setDayName(days[k]);
-            days[daysGlobal[k]] = day.getJSON();
+            day.setDayName(daysGlobal[k]);
+            console.log(day.getJSON());
+            days[k] = day.getJSON();
         });
     };
 
@@ -73,27 +74,28 @@ exports.Table = function(){
 }
 
 exports.Day = function(){
-    var day = {}, $, modules = [], dayName;
+    var day = {}, $, modules = [], dayObject = {};
+    dayObject.modules = [];
     day.init = function(cheerio, data){
         $ = cheerio;
         var rows = $(data).find('tr').slice(1);
         rows.each(function(k, v){
             var module = exports.Module();
             module.init($, v);
-            modules.push(module.getJSON());
+            dayObject.modules.push(module.getJSON());
         });
     };
 
     day.getJSON = function(){
-        return modules;
+        return dayObject;
     };
 
     day.setDayName = function(name){
-        dayName = name;
+        dayObject.day_name = name;
     };
 
     day.getDayName = function(){
-        return dayName;
+        return dayObject.name;
     }
     return day;
 };
@@ -167,7 +169,7 @@ exports.CourseScraper = function(){
             }
             if(course){
                 var now = Date.now();
-                if(now - course.time_stamp.getTime() > 1000 * 60 * 60 * 24){ // 24 hour expiry
+                if(now - course.time_stamp.getTime() > 10){ // 24 hour expiry
                     // Data is stale
                     refresh(url).then(function(data){
                         deferred.resolve(data);

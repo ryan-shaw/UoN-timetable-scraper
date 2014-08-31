@@ -15,15 +15,17 @@ angular
     'ngResource',
     'ngRoute',
     'ngSanitize',
-    'ngTouch',
-    'infinite-scroll',
-    'ui.utils'
+    'ngTouch'
   ])
   .config(function ($routeProvider) {
     $routeProvider
       .when('/', {
         templateUrl: 'views/main.html',
         controller: 'MainCtrl'
+      })
+      .when('/course/:id', {
+        templateUrl: 'views/course.html',
+        controller: 'CourseCtrl'
       })
       .otherwise({
         redirectTo: '/'

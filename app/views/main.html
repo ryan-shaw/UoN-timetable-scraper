@@ -3,12 +3,12 @@
   <p class="lead">
     <img src="" alt=""><br>
   </p>
-  <p><a class="btn btn-lg btn-success" ng-href="#"></a></p>
+  <!-- <p><a class="btn btn-lg btn-success" ng-href="#"></a></p> -->
 </div>
 
 <div class="row marketing">
-  <h4></h4>
-  <p>
-    A prototyped version of the power of angular and event driven applications
-  </p>
+  <input class="form-control" ng-model="search"/>
+  <div ng-repeat="course in courses | filter:search">
+    <h3><a href="/#/course/{{course.id}}">{{course.name}}</a></h3>
+  </div>
 </div>

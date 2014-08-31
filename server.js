@@ -4,6 +4,11 @@ var app     = express();
 var fs = require('fs');
 var API = require('./api.js');
 
+app.use(function (req, res, next) {
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:9001');
+    next();
+});
+
 app.get('/api/', function(req, res){
     res.send('Please visit the <a href="https://github.com/ryanshawty/UoN-timetable-scraper">GitHub page</a>');
 });
@@ -30,7 +35,7 @@ app.get('/api/courses/:id', function(req, res){
         courseData.name = data.name;
         var course = API.CourseScraper().init(req.param('id'));
         course.then(function(data){
-            courseData.modules = data;
+            courseData.days = data;
             res.json(courseData);
         });
     });
