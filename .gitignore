@@ -38,3 +38,8 @@ Icon
 
 node_modules/
 .env
+dist
+.tmp
+.sass-cache
+bower_components
+.bowerrc

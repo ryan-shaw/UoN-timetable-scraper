@@ -4,11 +4,11 @@ var app     = express();
 var fs = require('fs');
 var API = require('./api.js');
 
-app.get('/', function(req, res){
+app.get('/api/', function(req, res){
     res.send('Please visit the <a href="https://github.com/ryanshawty/UoN-timetable-scraper">GitHub page</a>');
 });
 
-app.get('/scrape/:id', function(req, res){
+app.get('/api/scrape/:id', function(req, res){
     var id = req.param('id');//0003193
     var course = API.CourseScraper().init(id);
     course.then(function(data){
@@ -18,13 +18,13 @@ app.get('/scrape/:id', function(req, res){
     });
 });
 
-app.get('/courses', function(req, res){
+app.get('/api/courses', function(req, res){
     API.getCourses(function(data){
         res.send(data);
     })
 });
 
-app.get('/courses/:id', function(req, res){
+app.get('/api/courses/:id', function(req, res){
     API.getCourse(req.param('id'), function(data){
         var courseData = {};
         courseData.name = data.name;
