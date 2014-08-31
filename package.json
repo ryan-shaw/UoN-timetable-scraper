@@ -17,5 +17,9 @@
   "subdomain": "uon-timetable-api",
   "engines": {
     "node": "0.10.x"
+  },
+  "devDependencies": {
+    "nodeunit": "~0.9.0",
+    "dotenv": "~0.4.0"
   }
 }
