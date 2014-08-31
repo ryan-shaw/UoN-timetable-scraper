@@ -8,14 +8,15 @@
 		</thead>
 		<tbody>
 			<tr ng-repeat="module in day.modules">
-				<td width="40%">{{module.name}}</td>
+				<td width="35%">{{module.name}}</td>
 				<td width="15%">{{module.time.start}} - {{module.time.end}}</td>
-				<td width="15%">{{module.type}}</td>
+				<td width="10%">{{module.type}}</td>
 				<td width="20%">{{module.room}}</td>
+				<td width="10%"><span ng-repeat="week in module.weeks">{{week}} </span></td>
 				<td width="10%">
 					<div class="checkbox">
 						<label>
-							<input type="checkbox" ng-init="module.use = true" ng-model="module.use"> I do this
+							<input type="checkbox" ng-init="module.use = true" ng-model="module.use" ng-click="filterModules()"> I do this
 						</label>
 					</div>
 				</td>

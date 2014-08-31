@@ -7,17 +7,13 @@
  * # MainCtrl
  * Controller of the uonApp
  */
-angular.module('uonApp').controller('CourseCtrl', function ($scope, $http, $routeParams) {
+angular.module('uonApp').controller('CourseCtrl', function ($scope, $http, $routeParams, $timeout) {
    	$http.get('http://uon-timetable-api.jit.su/api/courses/' + $routeParams.id).then(function(res){
     	$scope.course = res.data;
-    	filterEvents();
+    	$timeout(filterEvents, 50);
     });
-    var date = new Date();
-    var d = date.getDate();
-    var m = date.getMonth();
-    var y = date.getFullYear();
     var startWeek = new Date(2014, 8, 22);
-   	var events = [{title: 'All Day Event', start: new Date(y, m, d + 1, 19, 0), end: new Date(y, m, d + 1, 22, 30), allDay: false}];
+   	$scope.events = [];
    	$scope.uiConfig = {
       	calendar:{
 	        // height: 450,
@@ -27,17 +23,19 @@ angular.module('uonApp').controller('CourseCtrl', function ($scope, $http, $rout
 	          center: '',
 	          right: 'today prev,next'
 	        },
-        	eventClick: $scope.alertOnEventClick,
-        	eventDrop: $scope.alertOnDrop,
-        	eventResize: $scope.alertOnResize,
+        	// eventClick: $scope.alertOnEventClick,
+        	// eventDrop: $scope.alertOnDrop,
+        	// eventResize: $scope.alertOnResize,
         	defaultView: 'agendaWeek'
      	}
     };
-    $scope.eventSources = [events];
-
+    $scope.eventSources = [$scope.events];
     var filterEvents = function(){
     	$scope.course.days.forEach(function(value, k){
     		value.modules.forEach(function(module){
+    			if(!module.use){
+    				return;
+    			}
     			module.weeks.forEach(function(week){
     				week = week.split('-');
     				var startTime, endTime;
@@ -88,8 +86,13 @@ angular.module('uonApp').controller('CourseCtrl', function ($scope, $http, $rout
     		});
     	});
     };
+    $scope.filterModules = function(){
+    	console.log($scope.eventSources);
+    	$scope.eventSources[0] = [];
+    	$timeout(filterEvents, 50);
+    };
+
     function insertEvent(data){
-    	events.push(data);
-    	$scope.eventSources = [events];
+    	$scope.eventSources[0].push(data);
     }
 });
