@@ -8,7 +8,8 @@
     "express": "latest",
     "request": "latest",
     "cheerio": "latest",
-    "mongoose": "~3.8.15"
+    "mongoose": "~3.8.15",
+    "q": "~1.0.1"
   },
   "scripts": {
     "start": "node server.js"

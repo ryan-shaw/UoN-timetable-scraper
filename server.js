@@ -5,6 +5,7 @@ var request = require('request');
 var cheerio = require('cheerio');
 var app     = express();
 var mongoose = require('mongoose');
+var Q = require('q');
 
 // Mongo connect
 var mongouri = process.env.MONGO_URI;
@@ -89,6 +90,17 @@ var Day = function(){
 
 var Module = function(){
     var module = {}, $, info = {};
+
+    var getWeeks = function (cell){
+        var regex = /(\d+-?\d*)/g;
+        var matchArr = [], result;
+        while ( (result = regex.exec(cell)) ) {
+            matchArr.push(result[1]);
+        }
+        console.log(matchArr);
+        return matchArr;
+    };
+
     module.init = function(cheerio, data){
         $ = cheerio;
         var cells = $(data).find('td');
@@ -101,7 +113,8 @@ var Module = function(){
                 'start': $(cells[5]).text(),
                 'end': $(cells[6]).text()
             },
-            'room': $(cells[8]).text()
+            'room': $(cells[8]).text(),
+            'weeks': getWeeks($(cells[12]).text())
         };
     };
 
@@ -112,42 +125,71 @@ var Module = function(){
     return module;
 };
 
-app.get('/', function(req, res){
-    res.send('Please visit the <a href="https://github.com/ryanshawty/UoN-timetable-scraper">GitHub page</a>');
-});
+var CourseScraper = function(){
+    var scraper = {}, id, url;
 
-app.get('/scrape/:id', function(req, res){
-    var id = req.param('id');//0003193
-    var url = url_base + id + url_top;
-    CourseModulesModel.findOne({course_id: id}, function(err, course){
-        if(course){
-            var now = Date.now();
-            if(now - course.time_stamp.getTime() > 1000 * 60 * 60 * 24){ // 24 hour expiry
-                // Data is stale
-                refresh();
-            }else{
-                // Data is fresh
-                res.json(course.data);
-            }
-        }else{
-            // No data exists
-            refresh();
-        }
-    });
-
-    function refresh(){
+    var refresh = function(){
+        var deferred = Q.defer();
         request(url, function(error, response, html){
             if(!error){
                 var $ = cheerio.load(html);
                 var data = $('body > table');
                 var table = Table();
                 table.init($, data); // Init table module with data
-                res.json(table.getJSON());
+                deferred.resolve(table.getJSON());
                 var newCourse = new CourseModulesModel({course_id: id, data: table.getJSON()});
                 newCourse.save();
             }
-        })
-    }
+        });
+        return deferred.promise;
+    };
+
+    scraper.init = function(lId){
+        // Create promise
+        id = lId;
+
+        var deferred = Q.defer();
+        url = url_base + id + url_top;
+        // Add promise here
+        CourseModulesModel.findOne({course_id: id}, function(err, course){
+            if(err){
+                return deferred.reject(new Error(err));
+            }
+            if(course){
+                var now = Date.now();
+                if(now - course.time_stamp.getTime() > 10){ // 24 hour expiry
+                    // Data is stale
+                    refresh(url).then(function(data){
+                        deferred.resolve(data);
+                    });
+                }else{
+                    // Data is fresh
+                    deferred.resolve(course.data);
+                }
+            }else{
+                // No data exists
+                refresh(url).then(function(data){
+                    deferred.resolve(data);
+                });
+            }
+        });
+        return deferred.promise;
+    };
+    return scraper;
+};
+
+app.get('/', function(req, res){
+    res.send('Please visit the <a href="https://github.com/ryanshawty/UoN-timetable-scraper">GitHub page</a>');
+});
+
+app.get('/scrape/:id', function(req, res){
+    var id = req.param('id');//0003193
+    var course = CourseScraper().init(id);
+    course.then(function(data){
+            res.json(data);
+    }, function(err){
+
+    });
 });
 
 app.get('/courses', function(req, res){
