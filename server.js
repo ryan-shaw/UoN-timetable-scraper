@@ -43,14 +43,8 @@ app.get('/api/scrape/:id', function(req, res){
     });
 });
 
-app.get('/api/courses/:search', function(req, res){
-    API.getCourses(req.param('search'), function(data){
-        res.send(data);
-    })
-});
-
-app.get('/api/courses/:id', function(req, res){
-    API.getCourse(req.param('id'), function(data){
+app.get('/api/courses/((\\d+))', function(req, res){
+    API.getCourse(req.params[0], function(data){
         var courseData = {};
         courseData.name = data.name;
         var course = API.CourseScraper().init(req.param('id'));
@@ -59,6 +53,12 @@ app.get('/api/courses/:id', function(req, res){
             res.json(courseData);
         });
     });
+});
+
+app.get('/api/courses/((\\w+))', function(req, res){
+    API.getCourses(req.params[0], function(data){
+        res.send(data);
+    })
 });
 
 app.use(express.static(__dirname + '/dist'));
