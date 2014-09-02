@@ -2,10 +2,22 @@ var request = require('request');
 var cheerio = require('cheerio');
 var mongoose = require('mongoose');
 var Q = require('q');
+var findOrCreate = require('mongoose-findorcreate')
+var FacebookStrategy = require('passport-facebook').Strategy;
+
+exports.passport = require('passport');
+
 require('dotenv').load();
 // Mongo connect
 var mongouri = process.env.MONGO_URI;
 mongoose.connect(mongouri);
+
+var UserSchema = mongoose.Schema({
+    fbId: String,
+    name : String
+});
+UserSchema.plugin(findOrCreate);
+var UserModel = mongoose.model('Users', UserSchema);
 
 var ProgrammeSchema = mongoose.Schema({
     id: String,
@@ -34,6 +46,46 @@ var CourseModulesModel = mongoose.model('CourseModules', CourseModulesSchema);
 var daysGlobal = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 var url_base = 'http://uiwwwsci01.nottingham.ac.uk:8003/reporting/TextSpreadsheet;programme+of+study;id;';
 var url_top = '%0D%0A?days=1-5&weeks=1-52&periods=3-20&template=SWSCUST+programme+of+study+TextSpreadsheet&height=100&week=100';
+
+exports.passport.use(new FacebookStrategy({
+    clientID: process.env.FB_ID,
+    clientSecret: process.env.FB_SECRET,
+    callbackURL: process.env.URL + '/auth/facebook/callback'
+  },
+  function(accessToken, refreshToken, profile, done) {
+    UserModel.findOne({fbId : profile.id}, function(err, oldUser){
+        if(oldUser){
+            done(null,oldUser);
+        }else{
+            var newUser = new UserModel({
+                fbId : profile.id ,
+                name : profile.displayName
+            }).save(function(err,newUser){
+                if(err) throw err;
+                done(null, newUser);
+            });
+        }
+    });
+  }
+));
+
+exports.passport.serializeUser(function(user, done) {
+    done(null, user.id);
+});
+
+exports.passport.deserializeUser(function(id, done) {
+    UserModel.findById(id,function(err,user){
+        if(err) done(err);
+        if(user){
+            done(null,user);
+        }else{
+            UserModel.findById(id, function(err,user){
+                if(err) done(err);
+                done(null,user);
+            });
+        }
+    });
+})
 
 exports.getCourse = function(id, callback){
     var check = new RegExp("^[0-9a-fA-F]{24}$");
