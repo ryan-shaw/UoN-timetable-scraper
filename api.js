@@ -2,7 +2,6 @@ var request = require('request');
 var cheerio = require('cheerio');
 var mongoose = require('mongoose');
 var Q = require('q');
-var findOrCreate = require('mongoose-findorcreate')
 var FacebookStrategy = require('passport-facebook').Strategy;
 
 exports.passport = require('passport');
@@ -16,7 +15,6 @@ var UserSchema = mongoose.Schema({
     fbId: String,
     name : String
 });
-UserSchema.plugin(findOrCreate);
 var UserModel = mongoose.model('Users', UserSchema);
 
 var ProgrammeSchema = mongoose.Schema({
@@ -116,7 +114,6 @@ exports.Table = function(){
             var day = exports.Day();
             day.init($, v);
             day.setDayName(daysGlobal[k]);
-            console.log(day.getJSON());
             days[k] = day.getJSON();
         });
     };
@@ -159,11 +156,19 @@ exports.Module = function(){
     var module = {}, $, info = {};
 
     var getWeeks = function (cell){
-        var regex = /(\d+-?\d*)/g;
         var matchArr = [], result;
-        while ( (result = regex.exec(cell)) ) {
-            matchArr.push(result[1]);
+        var result = cell.split(', ');
+        for(var i = 0; i < result.length; i++){
+            var result1 = result[i].split('-');
+            if(result1.length === 2){
+                for(var j = parseInt(result1[0]); j < parseInt(result1[1]); j++){
+                    matchArr.push(j);
+                }
+            }else{
+                matchArr.push(result1[0]);
+            }
         }
+        
         return matchArr;
     };
 
