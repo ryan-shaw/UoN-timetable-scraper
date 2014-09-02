@@ -43,8 +43,8 @@ app.get('/api/scrape/:id', function(req, res){
     });
 });
 
-app.get('/api/courses', function(req, res){
-    API.getCourses(function(data){
+app.get('/api/courses/:search', function(req, res){
+    API.getCourses(req.param('search'), function(data){
         res.send(data);
     })
 });

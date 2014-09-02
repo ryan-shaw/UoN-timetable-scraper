@@ -95,8 +95,13 @@ exports.getCourse = function(id, callback){
     });
 };
 
-exports.getCourses = function(callback){
-    ProgrammeModel.find({}, function(err, programmes){
+exports.getCourses = function(search, callback){
+    if(search.length < 3){
+        return callback({
+            error: 'Search term must be >= 3 characters'
+        });
+    }
+    ProgrammeModel.find({name: {$regex: search, $options: 'i'}}, function(err, programmes){
         callback(programmes);
     });
 };

@@ -8,9 +8,9 @@ API Endpoints
 Base URL
 ``http://uon-timetable-api.jit.su/api``
 
-/courses
+/courses/:search
 ---
-Get full lists of courses that exist
+Get full lists of courses that contain ``search`` text, will response with an error if search term length below 3
 
 Example response:
 ```json
