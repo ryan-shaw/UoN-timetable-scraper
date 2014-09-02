@@ -47,7 +47,7 @@ app.get('/api/courses/((\\d+))', function(req, res){
     API.getCourse(req.params[0], function(data){
         var courseData = {};
         courseData.name = data.name;
-        var course = API.CourseScraper().init(req.param('id'));
+        var course = API.CourseScraper().init(req.params[0]);
         course.then(function(data){
             courseData.days = data;
             res.json(courseData);
