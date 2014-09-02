@@ -17,13 +17,12 @@ Example response:
 {
     "id":"0007951", // Course ID
     "name":"PGCE Mathematics 11 month PG (PGCE Non Standard Start) Full time/1 - X1G1 PGCE Mathematics", // Course name
-    "_id":"54023dfc7946094c11ba1ad7", // Mongo ID
 }
 ```
 
 /courses/:id
 ---
-Get a specific course. The ID param can be either ``id`` (course ID) or ``_id`` (Mongo ObjectID) from the above
+Get a specific course. The ID param is the course ID from above
 
 Example response: 
 

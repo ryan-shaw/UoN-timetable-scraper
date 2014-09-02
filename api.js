@@ -88,9 +88,7 @@ exports.passport.deserializeUser(function(id, done) {
 })
 
 exports.getCourse = function(id, callback){
-    var check = new RegExp("^[0-9a-fA-F]{24}$");
-    var filter = check.test(id) ? {_id: id} : {id: id};
-    ProgrammeModel.findOne(filter, function(err, programme){
+    ProgrammeModel.findOne({id: id}, function(err, programme){
         callback(programme);
     });
 };
