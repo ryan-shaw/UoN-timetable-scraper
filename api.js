@@ -22,8 +22,8 @@ var CourseModulesSchema = mongoose.Schema({
 });
 var CourseModulesModel = mongoose.model('CourseModules', CourseModulesSchema);
 
+// This is required to import programme data into database when it needs updating. See issue #9
 // var programmes = require('./programme').getProgrammes();
-
 // // For populating the database with programmes
 // for(var i = 0; i < programmes.length; i++){
 //     var temp = programmes[i];
@@ -169,19 +169,16 @@ exports.CourseScraper = function(){
     };
 
     scraper.init = function(lId){
-        // Create promise
         id = lId;
-
         var deferred = Q.defer();
         url = url_base + id + url_top;
-        // Add promise here
         CourseModulesModel.findOne({course_id: id}, function(err, course){
             if(err){
                 return deferred.reject(new Error(err));
             }
             if(course){
                 var now = Date.now();
-                if(now - course.time_stamp.getTime() > 10){ // 24 hour expiry
+                if(now - course.time_stamp.getTime() > 1000 * 60 * 60 * 24){ // 24 hour expiry
                     // Data is stale
                     refresh(url).then(function(data){
                         deferred.resolve(data);
