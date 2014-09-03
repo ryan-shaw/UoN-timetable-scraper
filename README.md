@@ -76,9 +76,11 @@ Then install this gem:
 gem install sass
 ```
 
-Once completed run npm install && bower install in root directory.
+Once completed run ``npm install && bower install`` in the root directory to install all dependencies.
 
 To start the application:
 ```
 nf start
 ```
+
+NOTE: This application requires a connection to a database, instruction will be here soon.
