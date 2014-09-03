@@ -39,13 +39,21 @@ app.get('/api/courses/((\\d+))', function(req, res){
         courseData.name = data.name;
         var course = API.CourseScraper().init(req.params[0]);
         course.then(function(data){
-            if(req.query.type === 'json'){
-                data.forEach(function(day){
-                    day.forEach(function(module){
-
+            if(req.query.type === 'csv'){
+                var startWeek = new Date(2014, 8, 15);
+                var csv = 'Subject,Start Date,Start Time,End Date,End Time,Location\n';
+                data.forEach(function(day, k){
+                    day.modules.forEach(function(module){
+                        module.weeks.forEach(function(week){        
+                            var weekDate = new Date(startWeek);
+                            weekDate.setDate(weekDate.getDate() + (week * 7) + k);
+                            weekDate = weekDate.getDate() + '/' + (weekDate.getMonth()+1) + '/' + weekDate.getFullYear();            
+                            csv += module.name + ',' + weekDate + ',' + module.time.start + ',' + weekDate + ',' + module.time.end + ',' + module.room + '\n';
+                        });
                     });
                 });
-                return;
+                res.set({'Content-Disposition':'attachment; filename=\'timetable.csv\''});
+                return res.send(csv);
             }
             courseData.days = data;
             res.json(courseData);

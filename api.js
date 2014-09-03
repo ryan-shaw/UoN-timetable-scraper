@@ -113,7 +113,7 @@ exports.Module = function(){
         for(var i = 0; i < result.length; i++){
             var result1 = result[i].split('-');
             if(result1.length === 2){
-                for(var j = parseInt(result1[0]); j < parseInt(result1[1]); j++){
+                for(var j = parseInt(result1[0]); j <= parseInt(result1[1]); j++){
                     matchArr.push(j);
                 }
             }else{
