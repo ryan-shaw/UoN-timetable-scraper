@@ -51,3 +51,34 @@ Example response:
    ]
 }
 ```
+
+Contributing
+---
+To contribute to this project you will need to first fork this project, this can be done via the Github web interface. Learn more here https://help.github.com/articles/fork-a-repo
+
+Once added to your Github account, clone the repo to your local machine. You will then need to install the following:
+```code
+npm install grunt-cli -g
+npm install bower -g
+npm install foreman -g
+```
+You might need to be administrator to do so: 
+
+```
+sudo npm...
+```
+
+You will need to have ruby installed. This comes pre shipped with Mac OSX, other OS's how-tos can be found [here](https://www.ruby-lang.org/en/installation/).
+
+Then install this gem:
+
+```code
+gem install sass
+```
+
+Once completed run npm install && bower install in root directory.
+
+To start the application:
+```
+nf start
+```
