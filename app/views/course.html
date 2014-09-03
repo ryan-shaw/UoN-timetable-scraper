@@ -2,29 +2,18 @@
 
 <button ng-click="csv()">Download CSV</button><span> (For import to Google Calendar)</span>
 
-<div ng-repeat="day in course.days">
-	<h3>{{day.day_name}}</h3>
-	<table class="table table-responsive table-striped">
-		<thead>
-			<tr><th>Name</th><th>Time</th><th>Type</th><th>Room</th><th></th></tr>
-		</thead>
-		<tbody>
-			<tr ng-repeat="module in day.modules">
-				<td width="35%">{{module.name}}</td>
-				<td width="15%">{{module.time.start}} - {{module.time.end}}</td>
-				<td width="10%">{{module.type}}</td>
-				<td width="20%">{{module.room}}</td>
-				<td width="10%"><span ng-repeat="week in module.weeks">{{week}} </span></td>
-				<td width="10%">
-					<div class="checkbox">
-						<label>
-							<input type="checkbox" ng-init="module.use = true" ng-model="module.use" ng-click="filterModules()"> I do this
-						</label>
-					</div>
-				</td>
-			</tr>
-		</tbody>
-	</table>
-</div>
-<div ui-calendar="uiConfig.calendar" class="span8 calendar" ng-model="eventSources" calendar="modules"></div> 
-<!-- <pre>{{course | json}}</pre> -->
+<h3>Modules</h3>
+<table class="table table-responsive table-striped">
+	<thead>
+		<tr><th width="5%">I do</th><th width="20%">Name</th><th>Day</th><th>Times</th></tr>
+	</thead>
+	<tbody>
+		<tr ng-repeat="(key, module) in modules">
+			<td><input type="checkbox" ng-init="module[0].use = true" ng-model="module[0].use" ng-click="filterModules()"></td>
+			<td>{{module[0].name}}</td>
+			<td><div ng-repeat="data in module">{{data.day}}</div></td>
+			<td><div ng-repeat="data in module">{{data.time.start}} - {{data.time.end}}</div></td>
+			<td><div ng-repeat="data in module">{{data.location}}</div></td>
+		</tr>
+	</tbody>
+</table>
