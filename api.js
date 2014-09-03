@@ -129,7 +129,7 @@ exports.Module = function(){
         var cells = $(data).find('td');
 
         info = {
-            'code': $(cells[0]).text(),
+            'code': $(cells[0]).text().split('/')[0],
             'name': $(cells[1]).text(),
             'type': $(cells[2]).text(),
             'time': {
