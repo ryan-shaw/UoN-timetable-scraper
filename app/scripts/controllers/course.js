@@ -31,7 +31,15 @@ angular.module('uonApp').controller('CourseCtrl', function ($scope, $http, $rout
     };
 
     $scope.csv = function(){
-    	window.location.href = 'http://uon-timetable-api.jit.su/api/courses/' + $routeParams.id +'?type=csv';
+    	var exclude = [];
+    	$scope.course.days.forEach(function(day){
+	    	day.modules.forEach(function(module){
+	    		if(!module.use){
+	    			exclude.push(module.code);
+	    		}
+	    	});
+    	});
+    	window.location.href = 'http://uon-timetable-api.jit.su/api/courses/' + $routeParams.id +'?type=csv&exclude=' + exclude.join(',');
     };
 
     $scope.eventSources = [$scope.events];
