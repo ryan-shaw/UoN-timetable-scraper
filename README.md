@@ -12,7 +12,7 @@ Base URL
 ---
 Get full lists of courses that contain ``search`` text, will response with an error if search term length below 3
 
-Example response:
+### Example response:
 ```json
 {
     "id":"0007951", // Course ID
@@ -24,7 +24,13 @@ Example response:
 ---
 Get a specific course. The ID param is the course ID from above
 
-Example response: 
+### Example request:
+
+GET /courses/0219123?type=csv - download the data as CSV
+
+The type parameter is optional, if not specified or not ``csv`` it will be passed back as ``json``
+
+### Example response: 
 
 ```json
 {  
