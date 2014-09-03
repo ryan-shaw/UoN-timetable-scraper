@@ -1,5 +1,7 @@
 <h2>{{course.name}}</h2>
 
+<button ng-click="csv()">Download CSV</button><span> (For import to Google Calendar)</span>
+
 <div ng-repeat="day in course.days">
 	<h3>{{day.day_name}}</h3>
 	<table class="table table-responsive table-striped">
