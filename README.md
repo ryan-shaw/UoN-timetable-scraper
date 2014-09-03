@@ -51,3 +51,23 @@ Example response:
    ]
 }
 ```
+
+Contributing
+---
+To contribute to this project you will need to first fork this project, this can be done via the Github web interface. Learn more here https://help.github.com/articles/fork-a-repo
+
+Once added to your Github account, clone the repo to your local machine. You will then need to install the following:
+
+npm install grunt-cli -g
+npm install bower -g
+npm install bower -g
+
+You might need to be administrator to do so: "sudo npm..."
+
+Once completed run npm install && bower install in root directory.
+
+To start the application type "nf start". 
+
+
+
+Example response: 
