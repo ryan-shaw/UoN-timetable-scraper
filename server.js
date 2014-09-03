@@ -19,18 +19,8 @@ app.use(function (req, res, next) {
     next();
 });
 
-app.use(API.passport.initialize());
-app.use(API.passport.session());
 app.get('/api/', function(req, res){
     res.send('Please visit the <a href="https://github.com/ryanshawty/UoN-timetable-scraper">GitHub page</a>');
-});
-
-app.get('/auth/facebook', API.passport.authenticate('facebook'));
-
-app.get('/auth/facebook/callback', API.passport.authenticate('facebook', { successRedirect: '/authtest', failureRedirect: '/fail' }));
-
-app.get('/authtest', ensureAuthenticated, function(req, res){
-    res.send('test');
 });
 
 app.get('/api/scrape/:id', function(req, res){
@@ -65,8 +55,3 @@ app.use(express.static(__dirname + '/dist'));
 
 app.listen('80');
 exports = module.exports = app;
-
-function ensureAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) { return next(); }
-  res.redirect('/noauth');
-}
