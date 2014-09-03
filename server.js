@@ -15,7 +15,7 @@ app.use(methodOverride());
 app.use(session({ secret: 'keyboard cat' }));
 
 app.use(function (req, res, next) {
-    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:9001');
+    res.setHeader('Access-Control-Allow-Origin', '*');
     next();
 });
 
@@ -39,6 +39,14 @@ app.get('/api/courses/((\\d+))', function(req, res){
         courseData.name = data.name;
         var course = API.CourseScraper().init(req.params[0]);
         course.then(function(data){
+            if(req.query.type === 'json'){
+                data.forEach(function(day){
+                    day.forEach(function(module){
+
+                    });
+                });
+                return;
+            }
             courseData.days = data;
             res.json(courseData);
         });

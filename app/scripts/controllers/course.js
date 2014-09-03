@@ -37,51 +37,27 @@ angular.module('uonApp').controller('CourseCtrl', function ($scope, $http, $rout
     				return;
     			}
     			module.weeks.forEach(function(week){
-    				week = week.split('-');
     				var startTime, endTime;
     				
-    				if(week.length > 1){
-    					// We have a range here
-    					for(var i = parseInt(week[0]); i < parseInt(week[1]); i ++){
-    						var multiObject = {
-		    					title: module.name,
-		    					allDay: false
-		    				};
-    						// Insert at this week
-    						startTime = module.time.start.split(':');
-	    					endTime = module.time.end.split(':');
-	    					multiObject.start = new Date(startWeek);
-	    					multiObject.start.setDate(multiObject.start.getDate() + (i * 7) + k);
-	    					multiObject.start.setHours(startTime[0]);
-	    					multiObject.start.setMinutes(startTime[1]);
+					var singleObject = {
+    					title: module.name,
+    					allDay: false
+    				};
+					// Insert 1
+					startTime = module.time.start.split(':');
+					endTime = module.time.end.split(':');
+					singleObject.start = new Date(startWeek);
+					singleObject.start.setDate(singleObject.start.getDate() + week * 7 + k);
+					singleObject.start.setHours(startTime[0]);
+					singleObject.start.setMinutes(startTime[1]);
 
-	    					multiObject.end = new Date(startWeek);
-	    					multiObject.end.setDate(multiObject.end.getDate() + (i * 7) + k);
-	    					multiObject.end.setHours(endTime[0]);
-	    					multiObject.end.setMinutes(endTime[1]);
+					singleObject.end = new Date(startWeek);
+					singleObject.end.setDate(singleObject.end.getDate() + week * 7 + k);
+					singleObject.end.setHours(endTime[0]);
+					singleObject.end.setMinutes(endTime[1]);
 
-	    					insertEvent(multiObject);
-    					}
-    				}else{
-    					var singleObject = {
-	    					title: module.name,
-	    					allDay: false
-	    				};
-    					// Insert 1
-    					startTime = module.time.start.split(':');
-    					endTime = module.time.end.split(':');
-    					singleObject.start = new Date(startWeek);
-    					singleObject.start.setDate(singleObject.start.getDate() + week[0] * 7 + k);
-    					singleObject.start.setHours(startTime[0]);
-    					singleObject.start.setMinutes(startTime[1]);
-
-    					singleObject.end = new Date(startWeek);
-    					singleObject.end.setDate(singleObject.end.getDate() + week[0] * 7 + k);
-    					singleObject.end.setHours(endTime[0]);
-    					singleObject.end.setMinutes(endTime[1]);
-
-    					insertEvent(singleObject);
-    				}
+					insertEvent(singleObject);
+				
     			});
     		});
     	});
