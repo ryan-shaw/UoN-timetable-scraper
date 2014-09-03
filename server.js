@@ -39,6 +39,23 @@ app.get('/api/courses/((\\d+))', function(req, res){
         courseData.name = data.name;
         var course = API.CourseScraper().init(req.params[0]);
         course.then(function(data){
+            if(typeof req.query.exclude !== 'undefined'){
+                if(req.query.exclude.length > 0){
+                    
+                    console.log(data.length);
+                    for(var i = 0; i < data.length; i++){
+                        var newModules = [];
+                        var modules = data[i].modules;
+                        for(var j = 0; j < modules.length; j++){
+                            var module = modules[j];
+                            if(req.query.exclude.indexOf(module.code) === -1){
+                                newModules.push(module);
+                            }
+                        }
+                        data[i].modules = newModules;
+                    }                
+                }
+            }
             if(req.query.type === 'csv'){
                 var startWeek = new Date(2014, 8, 15);
                 var csv = 'Subject,Start Date,Start Time,End Date,End Time,Location\n';
@@ -57,6 +74,8 @@ app.get('/api/courses/((\\d+))', function(req, res){
             }
             courseData.days = data;
             res.json(courseData);
+        }, function(err){
+            console.log(err);
         });
     });
 });
