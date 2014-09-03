@@ -76,9 +76,9 @@ angular.module('uonApp').controller('CourseCtrl', function ($scope, $http, $rout
     	});
     };
     $scope.filterModules = function(){
-    	console.log($scope.eventSources);
-    	$scope.eventSources[0] = [];
-    	$timeout(filterEvents, 50);
+    	// console.log($scope.eventSources);
+    	// $scope.eventSources[0] = [];
+    	// $timeout(filterEvents, 50);
     };
 
     function insertEvent(data){
