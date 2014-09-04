@@ -2,7 +2,8 @@ var request = require('request');
 var cheerio = require('cheerio');
 var mongoose = require('mongoose');
 var Q = require('q');
-
+var updater = require('./updater.js');
+var async = require('async');
 
 require('dotenv').load();
 // Mongo connect
@@ -11,7 +12,8 @@ mongoose.connect(mongouri);
 
 var ProgrammeSchema = mongoose.Schema({
     id: String,
-    name: String
+    name: String,
+    school: String
 });
 var ProgrammeModel = mongoose.model('Programme', ProgrammeSchema);
 
@@ -22,20 +24,60 @@ var CourseModulesSchema = mongoose.Schema({
 });
 var CourseModulesModel = mongoose.model('CourseModules', CourseModulesSchema);
 
-// This is required to import programme data into database when it needs updating. See issue #9
-// var programmes = require('./programme').getProgrammes();
-// // For populating the database with programmes
-// for(var i = 0; i < programmes.length; i++){
-//     var temp = programmes[i];
-//     var name = temp[0];
-//     var id = temp[2];
-//     var newProgramme = new ProgrammeModel({id: id, name: name});
-//     newProgramme.save();
-// }
+var RoomSchema = mongoose.Schema({
+    full_name: String,
+    short_name: String
+});
+var RoomModel = mongoose.model('Rooms', RoomSchema);
 
 var daysGlobal = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 var url_base = 'http://uiwwwsci01.nottingham.ac.uk:8003/reporting/TextSpreadsheet;programme+of+study;id;';
 var url_top = '%0D%0A?days=1-5&weeks=1-52&periods=3-20&template=SWSCUST+programme+of+study+TextSpreadsheet&height=100&week=100';
+
+exports.runUpdater = function(){
+    console.log('Downloading filters.js...\n');
+    updater.getFilter().then(function(data){
+        console.log('Running series updates...\n');
+        async.series([
+            function(callback){
+                console.log('Starting update of rooms...\n');
+                RoomModel.remove({}, function(err){
+                    if(!err){
+                        data.rooms.forEach(function(room, k){
+                            new RoomModel(room).save(function(err){
+                                if(k === data.rooms.length - 1)
+                                    callback(null, true);
+                            });
+                        });
+                    }else{
+                        callback(err);
+                    }
+                });
+            },
+            function(callback){
+                console.log('Starting update of courses...\n');
+                ProgrammeModel.remove({}, function(err){
+                    if(!err){
+                        data.courses.forEach(function(course, k){
+                            new ProgrammeModel(course).save(function(err){
+                                if(k === data.courses.length - 1)
+                                    callback(null, true);
+                            });
+                        });
+                    }else{
+                        callback(err);
+                    }
+                });
+            }
+        ], function(err, results){
+            if(!err){
+                console.log('Completed updates successfully!\n');
+            }
+        });        
+    }, function(err){
+        console.log(err);
+    });
+};
 
 exports.getCourse = function(id, callback){
     ProgrammeModel.findOne({id: id}, function(err, programme){
