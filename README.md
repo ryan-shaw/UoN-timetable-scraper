@@ -84,9 +84,12 @@ gem install sass
 
 Once completed run ``npm install && bower install`` in the root directory to install all dependencies.
 
-To start the application:
-```
-nf start
-```
+### Read only database connection
 
-NOTE: This application requires a connection to a database, instruction will be here soon.
+This application requires a database connection. There is a read only user set on the database which you may use. 
+
+Step 1: Create a file called ``.env`` in the root directory 
+
+Step 2: Add ``mongodb://uon-readonly:readonly@kahana.mongohq.com:10082/programmes`` to the ``.env`` file
+
+Step 3: Run ```nf start```
