@@ -30,9 +30,42 @@ var RoomSchema = mongoose.Schema({
 });
 var RoomModel = mongoose.model('Rooms', RoomSchema);
 
+var StudentSchema = mongoose.Schema({
+    first_name: String,
+    surname: String,
+    email: String,
+    username: String,
+    course: String,
+    course_code: String
+});
+var StudentModel = mongoose.model('Students', StudentSchema);
+
 var daysGlobal = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 var url_base = 'http://uiwwwsci01.nottingham.ac.uk:8003/reporting/TextSpreadsheet;programme+of+study;id;';
 var url_top = '%0D%0A?days=1-5&weeks=1-52&periods=3-20&template=SWSCUST+programme+of+study+TextSpreadsheet&height=100&week=100';
+
+var request = require('request');
+process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+var getJson = function (url, callback) {
+    request(url, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            var jsonpData = body;
+            var json;
+            //if you don't know for sure that you are getting jsonp, then i'd do something like this
+            try
+            {
+                json = JSON.parse(jsonpData);
+            }
+            catch(e)
+            {
+                callback(e);
+            }
+            callback(null, json);
+        } else {
+            callback(error);
+        }
+    });
+}
 
 exports.runUpdater = function(){
     console.log('Downloading filters.js...\n');
@@ -76,6 +109,20 @@ exports.runUpdater = function(){
         });        
     }, function(err){
         console.log(err);
+    });
+};
+
+exports.getCourseByUsername = function(username, callback){
+    getJson('https://ws.nottingham.ac.uk/person-search/v1.0/student/'+username, function(err, data){
+        exports.getCourseByName(data.results[0]._courseName, data.results[0]._yearOfStudy, function(data){
+            callback(data);
+        });
+    });
+};
+
+exports.getCourseByName = function(name, year, callback){
+    ProgrammeModel.findOne({name: new RegExp('^'+name+'.*/'+year)}, function(err, data){
+        callback(data);
     });
 };
 
