@@ -34,6 +34,12 @@ app.get('/api/scrape/:id', function(req, res){
     });
 });
 
+app.get('/api/modules/username/:username', function(req, res){
+    API.getCourseByUsername(req.params.username, function(data){
+        res.send(data);
+    });
+});
+
 app.get('/api/courses/((\\d+))', function(req, res){
     API.getCourse(req.params[0], function(data){
         var courseData = {};
@@ -43,7 +49,6 @@ app.get('/api/courses/((\\d+))', function(req, res){
             if(typeof req.query.exclude !== 'undefined'){
                 if(req.query.exclude.length > 0){
                     
-                    console.log(data.length);
                     for(var i = 0; i < data.length; i++){
                         var newModules = [];
                         var modules = data[i].modules;
