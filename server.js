@@ -34,13 +34,13 @@ app.get('/api/scrape/:id', function(req, res){
     });
 });
 
-app.get('/api/modules/username/:username', function(req, res){
+app.get('/api/courses/modules/username/:username', function(req, res){
     API.getCourseByUsername(req.params.username, function(data){
         res.send(data);
     });
 });
 
-app.get('/api/courses/((\\d+))', function(req, res){
+app.get('/api/courses/modules/((\\d+))', function(req, res){
     API.getCourse(req.params[0], function(data){
         var courseData = {};
         courseData.name = data.name;
