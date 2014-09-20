@@ -34,6 +34,13 @@ app.get('/api/scrape/:id', function(req, res){
     });
 });
 
+// E.g. ?name=Wilson%20M%20Dr&department=Computer Science
+app.get('/api/staff', function(req, res){
+    API.getStaffByShort(req.query.name, req.query.department, function(data){
+        res.send(data);
+    });
+});
+
 app.get('/api/courses/modules/username/:username', function(req, res){
     API.getCourseByUsername(req.params.username, function(data){
         res.send(data);
@@ -45,27 +52,28 @@ app.get('/api/courses/modules/((\\d+))', function(req, res){
         var courseData = {};
         courseData.name = data.name;
         var course = API.CourseScraper().init(req.params[0]);
-        course.then(function(data){
+        course.then(function(course){
+            courseData.department = course.department;
             if(typeof req.query.exclude !== 'undefined'){
                 if(req.query.exclude.length > 0){
                     
-                    for(var i = 0; i < data.length; i++){
+                    for(var i = 0; i < course.data.length; i++){
                         var newModules = [];
-                        var modules = data[i].modules;
+                        var modules = course.data[i].modules;
                         for(var j = 0; j < modules.length; j++){
                             var module = modules[j];
                             if(req.query.exclude.indexOf(module.code) === -1){
                                 newModules.push(module);
                             }
                         }
-                        data[i].modules = newModules;
+                        course.data[i].modules = newModules;
                     }                
                 }
             }
             if(req.query.type === 'csv'){
                 var startWeek = new Date(2014, 8, 15);
                 var csv = 'Subject,Start Date,Start Time,End Date,End Time,Location\n';
-                data.forEach(function(day, k){
+                course.data.forEach(function(day, k){
                     day.modules.forEach(function(module){
                         module.weeks.forEach(function(week){        
                             var weekDate = new Date(startWeek);
@@ -78,7 +86,7 @@ app.get('/api/courses/modules/((\\d+))', function(req, res){
                 res.set({'Content-Disposition':'attachment; filename=\'timetable.csv\''});
                 return res.send(csv);
             }
-            courseData.days = data;
+            courseData.days = course.data;
             res.json(courseData);
         }, function(err){
             console.log(err);
