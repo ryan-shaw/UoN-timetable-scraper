@@ -4,6 +4,7 @@ var mongoose = require('mongoose');
 var Q = require('q');
 var updater = require('./updater.js');
 var async = require('async');
+var _ = require('underscore');
 
 require('dotenv').load();
 // Mongo connect
@@ -19,6 +20,7 @@ var ProgrammeModel = mongoose.model('Programme', ProgrammeSchema);
 
 var CourseModulesSchema = mongoose.Schema({
     course_id: String,
+    department: String,
     data: Object,
     time_stamp: {type: Date, default: Date.now}
 });
@@ -39,6 +41,22 @@ var StudentSchema = mongoose.Schema({
     course_code: String
 });
 var StudentModel = mongoose.model('Students', StudentSchema);
+
+var DepartmentSchema = mongoose.Schema({
+    department_id: String,
+    name: String
+});
+var DepartmentModel = mongoose.model('Departments', DepartmentSchema);
+
+var StaffSchema = mongoose.Schema({
+    department: String,
+    givenName: String,
+    surename: String,
+    email: String,
+    username: String,
+    short: String
+});
+var StaffModel = mongoose.model('Staff', StaffSchema);
 
 var daysGlobal = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 var url_base = 'http://uiwwwsci01.nottingham.ac.uk:8003/reporting/TextSpreadsheet;programme+of+study;id;';
@@ -101,6 +119,21 @@ exports.runUpdater = function(){
                         callback(err);
                     }
                 });
+            },
+            function(callback){
+                console.log('Starting update of departments...\n');
+                DepartmentModel.remove({}, function(err){
+                    if(!err){
+                        data.departments.forEach(function(department, k){
+                            new DepartmentModel(department).save(function(err){
+                                if(k === data.departments.length - 1)
+                                    callback(null, true);
+                            });
+                        });
+                    }else{
+                        callback(err);
+                    }
+                });
             }
         ], function(err, results){
             if(!err){
@@ -109,6 +142,25 @@ exports.runUpdater = function(){
         });        
     }, function(err){
         console.log(err);
+    });
+};
+
+exports.getStaffByShort = function(short, department, callback){
+    var short = short.split(' ');
+    StaffModel.findOne({short: short.join(' '), department: department}, function(err, staff){
+        if(!staff){
+            getJson('https://ws.nottingham.ac.uk/person-search/v1.0/staff/' + short[0], function(err, data){
+                data.results = _.filter(data.results, function(person){
+                    return person._givenName.match(new RegExp('^' + short[1])) && person._department === department;
+                });
+                var person = data.results[0];
+                person = new StaffModel({short: short.join(' '), department: person._department, first_name: person._givenName, surname: person._surname, email: person._email, username: person._username});
+                person.save();
+                callback(person);
+            });
+        }else{
+            callback(staff);
+        }
     });
 };
 
@@ -227,6 +279,7 @@ exports.Module = function(){
                 'end': $(cells[6]).text()
             },
             'room': $(cells[8]).text(),
+            'staff': $(cells[11]).text(),
             'weeks': getWeeks($(cells[12]).text())
         };
     };
@@ -249,10 +302,16 @@ exports.CourseScraper = function(){
                 var data = $('body > table');
                 var table = exports.Table();
                 table.init($, data); // Init table module with data
-                deferred.resolve(table.getJSON());
+                
                 CourseModulesModel.find({course_id: id}).remove().exec();
-                var newCourse = new CourseModulesModel({course_id: id, data: table.getJSON()});
-                newCourse.save();
+                
+                ProgrammeModel.findOne({id: id}, function(err, course){
+                    DepartmentModel.findOne({department_id: course.school}, function(err, department){
+                        deferred.resolve({department: department.name, course_id: id, data: table.getJSON()});
+                        var newCourse = new CourseModulesModel({department: department.name, course_id: id, data: table.getJSON()});
+                        newCourse.save();
+                    });
+                });
             }
         });
         return deferred.promise;
@@ -275,7 +334,7 @@ exports.CourseScraper = function(){
                     });
                 }else{
                     // Data is fresh
-                    deferred.resolve(course.data);
+                    deferred.resolve(course);
                 }
             }else{
                 // No data exists

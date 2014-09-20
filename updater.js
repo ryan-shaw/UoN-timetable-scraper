@@ -22,17 +22,18 @@ var Updater = function(url){
 		var parts = getParts(url);
 		var deferred = Q.defer();
 
-		var out = fs.createWriteStream(__dirname + "/downloads/" + parts[3]);
-		var curl = spawn('curl', [url]);
-		curl.stdout.on('data', function(data){
-			out.write(data);
-		});
+		// var out = fs.createWriteStream(__dirname + "/downloads/" + parts[3]);
+		// var curl = spawn('curl', [url]);
+		// curl.stdout.on('data', function(data){
+		// 	out.write(data);
+		// });
 
-		curl.stdout.on('end', function(data){
-			out.end();
+		// curl.stdout.on('end', function(data){
+		// 	out.end();
 			var content;
 	    	var rooms = [];
 	    	var courses = [];
+	    	var departments = [];
 			fs.readFile(__dirname + "/downloads/" + parts[3], function read(err, data) {
 				content = data.toString();
 			 	var roomRegex = RegExp('roomarray\\[\\d+\\]\\s\\[\\d\\]\\s+\=\\s+\"(.*)\"\;\\s+.*\"(.*)\"\;\\s+.*\"(.*)\"\;', 'g');
@@ -46,9 +47,15 @@ var Updater = function(url){
 			    while (match = programmeRegex.exec(content)) {
 			        courses.push({name: match[1], school: match[2], id: match[3]});
 			    }
-			    deferred.resolve({rooms: rooms, courses: courses});
+
+			    var departmentRegex = RegExp('deptarray.*\"(.*)\"\;\\s+.*\"(.*)\"', 'g');
+			 	match = null;
+			    while (match = departmentRegex.exec(content)) {
+			        departments.push({name: match[1], department_id: match[2]});
+			    }
+			    deferred.resolve({rooms: rooms, courses: courses, departments: departments});
 			});
-		});
+		// });
 		return deferred.promise;
 	}
 
