@@ -37,8 +37,9 @@ var StudentSchema = mongoose.Schema({
     surname: String,
     email: String,
     username: String,
-    course: String,
-    course_code: String
+    course_id: String,
+    course_year: Number,
+    course_raw: Object
 });
 var StudentModel = mongoose.model('Students', StudentSchema);
 
@@ -165,11 +166,32 @@ exports.getStaffByShort = function(short, department, callback){
 };
 
 exports.getCourseByUsername = function(username, callback){
-    getJson('https://ws.nottingham.ac.uk/person-search/v1.0/student/'+username, function(err, data){
-        exports.getCourseByName(data.results[0]._courseName, data.results[0]._yearOfStudy, function(data){
-            callback(data);
-        });
+    username = username.toLowerCase();
+    StudentModel.findOne({username: username}, function(err, student){
+        if(!student){
+            getJson('https://ws.nottingham.ac.uk/person-search/v1.0/student/'+username, function(err, studentData){
+                console.log(studentData);
+                exports.getCourseByName(studentData.results[0]._courseName, studentData.results[0]._yearOfStudy, function(data){
+                    if(!data)
+                        return callback(null);
+                    student = new StudentModel({
+                        first_name: studentData.results[0]._givenName, 
+                        surname: studentData.results[0]._surname,
+                        course_year: studentData.results[0]._yearOfStudy,
+                        course_id: data.id,
+                        username: studentData.results[0]._username,
+                        email: studentData.results[0]._email,
+                        course_raw: data
+                    });
+                    student.save();
+                    callback(data);
+                });
+            });
+        }else{
+            callback(student.course_raw);
+        }
     });
+    
 };
 
 exports.getCourseByName = function(name, year, callback){
