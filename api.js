@@ -173,7 +173,7 @@ exports.getCourseByUsername = function(username, callback){
 };
 
 exports.getCourseByName = function(name, year, callback){
-    var search = new RegExp('^'+name+' \\d year.*\/'+year+'.*\\(Hons\\)', 'i');
+    var search = new RegExp('^'+name+' \\d year.*\/'+year+'.*\(Hons\)', 'i');
     ProgrammeModel.findOne({name: search}, function(err, data){
         callback(data);
     });
