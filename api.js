@@ -173,7 +173,7 @@ exports.getCourseByUsername = function(username, callback){
 };
 
 exports.getCourseByName = function(name, year, callback){
-    var search = new RegExp('^'+name+' \\d year.*\/'+year, 'i');
+    var search = new RegExp('^'+name+' \\d year.*\/'+year+'.*\\(Hons\\), 'i');
     ProgrammeModel.findOne({name: search}, function(err, data){
         callback(data);
     });
@@ -304,7 +304,7 @@ exports.CourseScraper = function(){
                 table.init($, data); // Init table module with data
                 
                 CourseModulesModel.find({course_id: id}).remove().exec();
-                
+
                 ProgrammeModel.findOne({id: id}, function(err, course){
                     DepartmentModel.findOne({department_id: course.school}, function(err, department){
                         deferred.resolve({department: department.name, course_id: id, data: table.getJSON()});
