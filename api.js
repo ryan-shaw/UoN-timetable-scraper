@@ -215,10 +215,14 @@ exports.getStaffByShort = function(short, department, callback){
     StaffModel.findOne({short: short.join(' '), department: department}, function(err, staff){
         if(!staff){
             getJson('https://ws.nottingham.ac.uk/person-search/v1.0/staff/' + short[0], function(err, data){
-                data.results = _.filter(data.results, function(person){
-                    return person._givenName.match(new RegExp('^' + short[1])) && person._department === department;
-                });
+                if(data.meta.noResults !== 1){
+                    data.results = _.filter(data.results, function(person){
+                        console.log(person);
+                        return person._givenName.match(new RegExp('^' + short[1])) && person._department == department;
+                    });
+                }
                 var person = data.results[0];
+                // console.log(short);
                 person = new StaffModel({short: short.join(' '), department: person._department, first_name: person._givenName, surname: person._surname, email: person._email, username: person._username});
                 person.save();
                 callback(person);
