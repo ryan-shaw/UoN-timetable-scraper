@@ -59,6 +59,12 @@ var StaffSchema = mongoose.Schema({
 });
 var StaffModel = mongoose.model('Staff', StaffSchema);
 
+var ZoneSchema = mongoose.Schema({
+    name: String,
+    code: String
+});
+var ZoneModel = mongoose.model('Zones', ZoneSchema);
+
 var daysGlobal = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 var url_base = 'http://uiwwwsci01.nottingham.ac.uk:8003/reporting/TextSpreadsheet;programme+of+study;id;';
 var url_top = '%0D%0A?days=1-5&weeks=1-52&periods=3-20&template=SWSCUST+programme+of+study+TextSpreadsheet&height=100&week=100';
@@ -67,10 +73,9 @@ var request = require('request');
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
 var getJson = function (url, callback) {
     request(url, function (error, response, body) {
-        if (!error && response.statusCode == 200) {
+        if (!error && response.statusCode === 200) {
             var jsonpData = body;
             var json;
-            //if you don't know for sure that you are getting jsonp, then i'd do something like this
             try
             {
                 json = JSON.parse(jsonpData);
@@ -84,13 +89,50 @@ var getJson = function (url, callback) {
             callback(error);
         }
     });
-}
+};
+
+var ZoneParser = function(){
+    var parser = {};
+    parser.init = function(callback){
+        request('http://www.nottingham.ac.uk/academicservices/timetabling/furtherinformation/buildingcodes.aspx', function(error, response, html){
+            if(!error){
+                var $ = cheerio.load(html);
+                var data = $('table').splice(0, $('table').length-2);
+                _.each(data, function(table){
+                    _.each($(table).find('tr'), function(row, k){
+                        if(k === 0){
+                            return;
+                        }
+                        cells = $(row).find('td');
+                        var code = $(cells[0]).text().trim(); 
+                        var name = $(cells[1]).text().trim();
+                        new ZoneModel({
+                            code: code,
+                            name: name
+                        }).save();
+                    });               
+                });
+                callback();
+            }
+        });
+    };
+    return parser;
+};
 
 exports.runUpdater = function(){
     console.log('Downloading filters.js...\n');
     updater.getFilter().then(function(data){
         console.log('Running series updates...\n');
         async.series([
+            function(callback){
+                console.log('Starting update of zones...');
+                ZoneModel.remove({}, function(err){
+                    var parser = new ZoneParser();
+                    parser.init(function(){
+                        callback();
+                    });
+                });
+            },
             function(callback){
                 console.log('Starting update of rooms...\n');
                 RoomModel.remove({}, function(err){
