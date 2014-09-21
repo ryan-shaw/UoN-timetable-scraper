@@ -234,7 +234,21 @@ exports.getStaffByShort = function(short, department, callback){
 };
 
 exports.getRoomInfo = function(room, callback){
-    callback({error: 'Not implemented'});
+    var zonesCampus = {
+        'JC': 'Jubilee Campus',
+        'SB': 'Sutton Bonnington',
+        'UP': 'University Park',
+        'KMC': 'Kings Meadow Campus',
+        'QMC': 'Queens Medical Centre',
+        'NMS': 'Nottingham Medical School'
+    };
+    var actualRoom = room.substring(room.lastIndexOf('-')+1);
+    room = room.substring(0, room.lastIndexOf('-'));
+    console.log(room);
+    ZoneModel.findOne({code: room}, function(err, zone){
+        zone.name += ' ' + actualRoom;
+        callback(zone);
+    });
 };
 
 exports.getCourseByUsername = function(username, callback){
