@@ -242,11 +242,13 @@ exports.getRoomInfo = function(room, callback){
         'QMC': 'Queens Medical Centre',
         'NMS': 'Nottingham Medical School'
     };
+    var splitRoom = room.split('-');
+    var campus = zonesCampus[splitRoom[0]];
     var actualRoom = room.substring(room.lastIndexOf('-')+1);
     room = room.substring(0, room.lastIndexOf('-'));
     console.log(room);
     ZoneModel.findOne({code: room}, function(err, zone){
-        zone.name += ' ' + actualRoom;
+        zone.name = campus + ' ' + zone.name + ' ' + actualRoom;
         callback(zone);
     });
 };
@@ -256,7 +258,7 @@ exports.getCourseByUsername = function(username, callback){
     StudentModel.findOne({username: username}, function(err, student){
         if(!student){
             getJson('https://ws.nottingham.ac.uk/person-search/v1.0/student/'+username, function(err, studentData){
-                console.log(studentData);
+                if(studentData.results.length === 0) return callback(null);
                 exports.getCourseByName(studentData.results[0]._courseName, studentData.results[0]._yearOfStudy, function(data){
                     if(!data)
                         return callback(null);
