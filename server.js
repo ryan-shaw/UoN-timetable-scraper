@@ -41,6 +41,13 @@ app.get('/api/staff', function(req, res){
     });
 });
 
+app.get('/api/room/:room', function(req, res){
+    // Return further room info, including staff details, room is the room code
+    API.getRoomInfo(req.params.room, function(data){
+        res.send(data);
+    });
+});
+
 app.get('/api/courses/modules/username/:username', function(req, res){
     API.getCourseByUsername(req.params.username, function(data){
         res.send(data);

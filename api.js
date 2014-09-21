@@ -65,6 +65,13 @@ var ZoneSchema = mongoose.Schema({
 });
 var ZoneModel = mongoose.model('Zones', ZoneSchema);
 
+var ModuleSchema = mongoose.Schema({
+    code: String,
+    id: String,
+    school: String
+});
+var ModuleModel = mongoose.model('Modules', ModuleSchema);
+
 var daysGlobal = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 var url_base = 'http://uiwwwsci01.nottingham.ac.uk:8003/reporting/TextSpreadsheet;programme+of+study;id;';
 var url_top = '%0D%0A?days=1-5&weeks=1-52&periods=3-20&template=SWSCUST+programme+of+study+TextSpreadsheet&height=100&week=100';
@@ -177,7 +184,22 @@ exports.runUpdater = function(){
                         callback(err);
                     }
                 });
-            }
+            },
+            function(callback){
+                console.log('Starting update of modules...\n');
+                ModuleModel.remove({}, function(err){
+                    if(!err){
+                        data.modules.forEach(function(module, k){
+                            new ModuleModel(module).save(function(err){
+                                if(k === data.departments.length - 1)
+                                    callback(null, true);
+                            });
+                        });
+                    }else{
+                        callback(err);
+                    }
+                });
+            } 
         ], function(err, results){
             if(!err){
                 console.log('Completed updates successfully!\n');
@@ -205,6 +227,10 @@ exports.getStaffByShort = function(short, department, callback){
             callback(staff);
         }
     });
+};
+
+exports.getRoomInfo = function(room, callback){
+    callback({error: 'Not implemented'});
 };
 
 exports.getCourseByUsername = function(username, callback){
