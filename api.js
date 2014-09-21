@@ -215,6 +215,8 @@ exports.getStaffByShort = function(short, department, callback){
     StaffModel.findOne({short: short.join(' '), department: department}, function(err, staff){
         if(!staff){
             getJson('https://ws.nottingham.ac.uk/person-search/v1.0/staff/' + short[0], function(err, data){
+
+                if(err || !data || typeof data.error !== 'undefined') return callback(null);
                 if(data.meta.noResults !== 1){
                     data.results = _.filter(data.results, function(person){
                         console.log(person);
