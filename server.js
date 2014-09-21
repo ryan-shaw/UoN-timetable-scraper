@@ -3,10 +3,10 @@ var express = require('express');
 var app     = express();
 var fs = require('fs');
 var API = require('./api.js');
-var logger = require('morgan')
-var session = require('express-session')
-var bodyParser = require("body-parser")
-var cookieParser = require("cookie-parser")
+var logger = require('morgan');
+var session = require('express-session');
+var bodyParser = require('body-parser');
+var cookieParser = require('cookie-parser');
 var methodOverride = require('method-override');
 // API.runUpdater();
 app.use(logger());
