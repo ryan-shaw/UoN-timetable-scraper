@@ -59,6 +59,26 @@ var StaffSchema = mongoose.Schema({
 });
 var StaffModel = mongoose.model('Staff', StaffSchema);
 
+var ZoneSchema = mongoose.Schema({
+    name: String,
+    code: String
+});
+var ZoneModel = mongoose.model('Zones', ZoneSchema);
+
+var ModuleSchema = mongoose.Schema({
+    code: String,
+    id: String,
+    school: String
+});
+var ModuleModel = mongoose.model('Modules', ModuleSchema);
+
+var IndividualModulesSchema = mongoose.Schema({
+    id: String,
+    days: Object,
+    time_stamp: {type: Date, default: Date.now}
+});
+var IndividualModulesModel = mongoose.model('individualmodules', IndividualModulesSchema);
+
 var daysGlobal = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 var url_base = 'http://uiwwwsci01.nottingham.ac.uk:8003/reporting/TextSpreadsheet;programme+of+study;id;';
 var url_top = '%0D%0A?days=1-5&weeks=1-52&periods=3-20&template=SWSCUST+programme+of+study+TextSpreadsheet&height=100&week=100';
@@ -67,10 +87,9 @@ var request = require('request');
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
 var getJson = function (url, callback) {
     request(url, function (error, response, body) {
-        if (!error && response.statusCode == 200) {
+        if (!error && response.statusCode === 200) {
             var jsonpData = body;
             var json;
-            //if you don't know for sure that you are getting jsonp, then i'd do something like this
             try
             {
                 json = JSON.parse(jsonpData);
@@ -84,13 +103,50 @@ var getJson = function (url, callback) {
             callback(error);
         }
     });
-}
+};
+
+var ZoneParser = function(){
+    var parser = {};
+    parser.init = function(callback){
+        request('http://www.nottingham.ac.uk/academicservices/timetabling/furtherinformation/buildingcodes.aspx', function(error, response, html){
+            if(!error){
+                var $ = cheerio.load(html);
+                var data = $('table').splice(0, $('table').length-2);
+                _.each(data, function(table){
+                    _.each($(table).find('tr'), function(row, k){
+                        if(k === 0){
+                            return;
+                        }
+                        cells = $(row).find('td');
+                        var code = $(cells[0]).text().trim(); 
+                        var name = $(cells[1]).text().trim();
+                        new ZoneModel({
+                            code: code,
+                            name: name
+                        }).save();
+                    });               
+                });
+                callback();
+            }
+        });
+    };
+    return parser;
+};
 
 exports.runUpdater = function(){
     console.log('Downloading filters.js...\n');
     updater.getFilter().then(function(data){
         console.log('Running series updates...\n');
         async.series([
+            function(callback){
+                console.log('Starting update of zones...');
+                ZoneModel.remove({}, function(err){
+                    var parser = new ZoneParser();
+                    parser.init(function(){
+                        callback();
+                    });
+                });
+            },
             function(callback){
                 console.log('Starting update of rooms...\n');
                 RoomModel.remove({}, function(err){
@@ -135,7 +191,22 @@ exports.runUpdater = function(){
                         callback(err);
                     }
                 });
-            }
+            },
+            function(callback){
+                console.log('Starting update of modules...\n');
+                ModuleModel.remove({}, function(err){
+                    if(!err){
+                        data.modules.forEach(function(module, k){
+                            new ModuleModel(module).save(function(err){
+                                if(k === data.departments.length - 1)
+                                    callback(null, true);
+                            });
+                        });
+                    }else{
+                        callback(err);
+                    }
+                });
+            } 
         ], function(err, results){
             if(!err){
                 console.log('Completed updates successfully!\n');
@@ -151,10 +222,16 @@ exports.getStaffByShort = function(short, department, callback){
     StaffModel.findOne({short: short.join(' '), department: department}, function(err, staff){
         if(!staff){
             getJson('https://ws.nottingham.ac.uk/person-search/v1.0/staff/' + short[0], function(err, data){
-                data.results = _.filter(data.results, function(person){
-                    return person._givenName.match(new RegExp('^' + short[1])) && person._department === department;
-                });
+
+                if(err || !data || typeof data.error !== 'undefined') return callback(null);
+                if(data.meta.noResults !== 1){
+                    data.results = _.filter(data.results, function(person){
+                        console.log(person);
+                        return person._givenName.match(new RegExp('^' + short[1])) && person._department == department;
+                    });
+                }
                 var person = data.results[0];
+                // console.log(short);
                 person = new StaffModel({short: short.join(' '), department: person._department, first_name: person._givenName, surname: person._surname, email: person._email, username: person._username});
                 person.save();
                 callback(person);
@@ -165,12 +242,106 @@ exports.getStaffByShort = function(short, department, callback){
     });
 };
 
+var ModuleScraper = function(){
+    var scraper = {}, id, url;
+
+    var refresh = function(){
+        var deferred = Q.defer();
+        request(url, function(error, response, html){
+            if(!error){
+                var $ = cheerio.load(html);
+                var data = $('body > table');
+                var table = exports.Table();
+                table.init($, data, true); // Init table module with data
+                deferred.resolve(table.getJSON());
+                IndividualModulesModel.find({id: id}).remove().exec();
+                var newModule = new IndividualModulesModel({id: id, days: table.getJSON()});
+                newModule.save();
+                // ProgrammeModel.findOne({id: id}, function(err, course){
+                //     DepartmentModel.findOne({department_id: course.school}, function(err, department){
+                //         deferred.resolve({department: department.name, course_id: id, data: table.getJSON()});
+                //         var newCourse = new CourseModulesModel({department: department.name, course_id: id, data: table.getJSON()});
+                //         newCourse.save();
+                //     });
+                // });
+            }
+        });
+        return deferred.promise;
+    };
+
+    scraper.init = function(lId, lurl){
+        id = lId;
+        var deferred = Q.defer();
+        url = url_base + id + url_top;
+        if(lurl){
+            url = lurl;
+        }
+        IndividualModulesModel.findOne({id: id}, function(err, course){
+            if(err){
+                return deferred.reject(new Error(err));
+            }
+            if(course){
+                var now = Date.now();
+                if(now - course.time_stamp.getTime() > 1000 * 60 * 60 * 24){ // 24 hour expiry
+                    // Data is stale
+                    refresh(url).then(function(data){
+                        deferred.resolve(data);
+                    });
+                }else{
+                    // Data is fresh
+                    deferred.resolve(course.days);
+                }
+            }else{
+                // No data exists
+                refresh(url).then(function(data){
+                    deferred.resolve(data);
+                });
+            }
+        });
+        return deferred.promise;
+    };
+    return scraper;
+};
+
+exports.getModule = function(code, callback){
+    ModuleModel.findOne({code: new RegExp('^'+code+'$', 'i')}, function(err, module){
+        if(module){
+            var module = ModuleScraper().init(module.id, 'http://uiwwwsci01.nottingham.ac.uk:8003/reporting/TextSpreadsheet;module;id;'+module.id+'%0D%0A?days=1-5&weeks=1-52&periods=3-20&template=SWSCUST+module+TextSpreadsheet&height=100&week=100');    
+            module.then(function(data){
+                callback(data);
+            });
+        }else{
+            callback(null);
+        }
+    });
+};
+
+exports.getRoomInfo = function(room, callback){
+    var zonesCampus = {
+        'JC': 'Jubilee Campus',
+        'SB': 'Sutton Bonnington',
+        'UP': 'University Park',
+        'KMC': 'Kings Meadow Campus',
+        'QMC': 'Queens Medical Centre',
+        'NMS': 'Nottingham Medical School'
+    };
+    var splitRoom = room.split('-');
+    var campus = zonesCampus[splitRoom[0]];
+    var actualRoom = room.substring(room.lastIndexOf('-')+1);
+    room = room.substring(0, room.lastIndexOf('-'));
+    console.log(room);
+    ZoneModel.findOne({code: room}, function(err, zone){
+        zone.name = campus + ' ' + zone.name + ' ' + actualRoom;
+        callback(zone);
+    });
+};
+
 exports.getCourseByUsername = function(username, callback){
     username = username.toLowerCase();
     StudentModel.findOne({username: username}, function(err, student){
         if(!student){
             getJson('https://ws.nottingham.ac.uk/person-search/v1.0/student/'+username, function(err, studentData){
-                console.log(studentData);
+                if(studentData.results.length === 0) return callback(null);
                 exports.getCourseByName(studentData.results[0]._courseName, studentData.results[0]._yearOfStudy, function(data){
                     if(!data)
                         return callback(null);
@@ -221,14 +392,14 @@ exports.getCourses = function(search, callback){
 exports.Table = function(){
     var table = {}, tData, rowCount = 0, rows =[], $, days = [];
 
-    table.init = function(cheerio, data){
+    table.init = function(cheerio, data, lmodule){
         $ = cheerio;
         data = data.slice(1, data.length-1);
         data.each(function(k, v){
             if(k === 5)
                 return;
             var day = exports.Day();
-            day.init($, v);
+            day.init($, v, lmodule);
             day.setDayName(daysGlobal[k]);
             days[k] = day.getJSON();
         });
@@ -244,12 +415,12 @@ exports.Table = function(){
 exports.Day = function(){
     var day = {}, $, modules = [], dayObject = {};
     dayObject.modules = [];
-    day.init = function(cheerio, data){
+    day.init = function(cheerio, data, lmodule){
         $ = cheerio;
         var rows = $(data).find('tr').slice(1);
         rows.each(function(k, v){
             var module = exports.Module();
-            module.init($, v);
+            module.init($, v, lmodule);
             dayObject.modules.push(module.getJSON());
         });
     };
@@ -288,22 +459,36 @@ exports.Module = function(){
         return matchArr;
     };
 
-    module.init = function(cheerio, data){
+    module.init = function(cheerio, data, lmodule){
         $ = cheerio;
         var cells = $(data).find('td');
-
-        info = {
-            'code': $(cells[0]).text().split('/')[0],
-            'name': $(cells[1]).text(),
-            'type': $(cells[2]).text(),
-            'time': {
-                'start': $(cells[5]).text(),
-                'end': $(cells[6]).text()
-            },
-            'room': $(cells[8]).text(),
-            'staff': $(cells[11]).text(),
-            'weeks': getWeeks($(cells[12]).text())
-        };
+        if(lmodule){
+            info = {
+                'code': $(cells[0]).text().split('/')[0],
+                'name': $(cells[3]).text(),
+                'type': $(cells[1]).text(),
+                'time': {
+                    'start': $(cells[5]).text(),
+                    'end': $(cells[6]).text()
+                },
+                'room': $(cells[8]).text(),
+                'staff': $(cells[11]).text(),
+                'weeks': getWeeks($(cells[12]).text())
+            };
+        }else{
+            info = {
+                'code': $(cells[0]).text().split('/')[0],
+                'name': $(cells[1]).text(),
+                'type': $(cells[2]).text(),
+                'time': {
+                    'start': $(cells[5]).text(),
+                    'end': $(cells[6]).text()
+                },
+                'room': $(cells[8]).text(),
+                'staff': $(cells[11]).text(),
+                'weeks': getWeeks($(cells[12]).text())
+            };
+        }
     };
 
     module.getJSON = function(){
@@ -339,10 +524,13 @@ exports.CourseScraper = function(){
         return deferred.promise;
     };
 
-    scraper.init = function(lId){
+    scraper.init = function(lId, lurl){
         id = lId;
         var deferred = Q.defer();
         url = url_base + id + url_top;
+        if(lurl){
+            url = lurl;
+        }
         CourseModulesModel.findOne({course_id: id}, function(err, course){
             if(err){
                 return deferred.reject(new Error(err));

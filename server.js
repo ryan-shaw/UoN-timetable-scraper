@@ -3,10 +3,10 @@ var express = require('express');
 var app     = express();
 var fs = require('fs');
 var API = require('./api.js');
-var logger = require('morgan')
-var session = require('express-session')
-var bodyParser = require("body-parser")
-var cookieParser = require("cookie-parser")
+var logger = require('morgan');
+var session = require('express-session');
+var bodyParser = require('body-parser');
+var cookieParser = require('cookie-parser');
 var methodOverride = require('method-override');
 // API.runUpdater();
 app.use(logger());
@@ -37,18 +37,50 @@ app.get('/api/scrape/:id', function(req, res){
 // E.g. ?name=Wilson%20M%20Dr&department=Computer Science
 app.get('/api/staff', function(req, res){
     API.getStaffByShort(req.query.name, req.query.department, function(data){
-        res.send(data);
+        if(!data){ 
+            res.send(500, {error: 'Not found'});
+        }else{
+            res.send(data);
+        }
+    });
+});
+
+app.get('/api/room/:room', function(req, res){
+    // Return further room info, including staff details, room is the room code
+    API.getRoomInfo(req.params.room, function(data){
+        if(!data){ 
+            res.send(500, {error: 'Not found'});
+        }else{
+            res.send(data);
+        }
+    });
+});
+
+app.get('/api/module/:code', function(req, res){
+    API.getModule(req.params.code, function(data){
+        if(!data){ 
+            res.send(500, {error: 'Not found'});
+        }else{
+            res.send(data);
+        }
     });
 });
 
 app.get('/api/courses/modules/username/:username', function(req, res){
     API.getCourseByUsername(req.params.username, function(data){
-        res.send(data);
+        if(!data){ 
+            res.send(500, {error: 'Not found'});
+        }else{
+            res.send(data);
+        }
     });
 });
 
 app.get('/api/courses/modules/((\\d+))', function(req, res){
     API.getCourse(req.params[0], function(data){
+        if(!data) {
+            return res.send(500, {error: 'Not found'});
+        }
         var courseData = {};
         courseData.name = data.name;
         var course = API.CourseScraper().init(req.params[0]);
@@ -97,10 +129,11 @@ app.get('/api/courses/modules/((\\d+))', function(req, res){
 app.get('/api/courses/((\\w+))', function(req, res){
     API.getCourses(req.params[0], function(data){
         res.send(data);
-    })
+    });
 });
 
 app.use(express.static(__dirname + '/dist'));
 
 app.listen('80');
+
 exports = module.exports = app;

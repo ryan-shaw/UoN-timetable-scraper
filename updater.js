@@ -34,6 +34,7 @@ var Updater = function(url){
 	    	var rooms = [];
 	    	var courses = [];
 	    	var departments = [];
+	    	var modules = [];
 			fs.readFile(__dirname + "/downloads/" + parts[3], function read(err, data) {
 				content = data.toString();
 			 	var roomRegex = RegExp('roomarray\\[\\d+\\]\\s\\[\\d\\]\\s+\=\\s+\"(.*)\"\;\\s+.*\"(.*)\"\;\\s+.*\"(.*)\"\;', 'g');
@@ -53,7 +54,13 @@ var Updater = function(url){
 			    while (match = departmentRegex.exec(content)) {
 			        departments.push({name: match[1], department_id: match[2]});
 			    }
-			    deferred.resolve({rooms: rooms, courses: courses, departments: departments});
+
+			    var moduleRegex = RegExp('modulearray.*\"(.*)\"\;\\s+.*\"(.*)\";\\s+.*\"(.*)\"', 'g');
+			 	match = null;
+			    while (match = moduleRegex.exec(content)) {
+			        modules.push({code: match[1], school: match[2], id: match[3]});
+			    }
+			    deferred.resolve({rooms: rooms, courses: courses, departments: departments, modules: modules});
 			});
 		// });
 		return deferred.promise;

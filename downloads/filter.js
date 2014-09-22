@@ -1,4 +1,4 @@
-// Generated Automatically on 20 Sep 2014 00:40:02
+// Generated Automatically on 21 Sep 2014 00:40:01
 // Copyright Scientia Ltd 2014
 // Scientia does not accept any warranty with regard to the content or usage of this file
 
@@ -26561,12 +26561,12 @@ function FilterStaff(Form) {
     staffarray[3649] [0] = "Cooling P Mr";
     staffarray[3649] [1] = "Pharmacy";
     staffarray[3649] [2] = "Cooling P Mr";
-    staffarray[3650] [0] = "Brown V Dr";
-    staffarray[3650] [1] = "Medical Course";
-    staffarray[3650] [2] = "Brown V Dr";
-    staffarray[3651] [0] = "Williams J Ms";
-    staffarray[3651] [1] = "Midwifery";
-    staffarray[3651] [2] = "Williams J Ms";
+    staffarray[3650] [0] = "Williams J Ms";
+    staffarray[3650] [1] = "Midwifery";
+    staffarray[3650] [2] = "Williams J Ms";
+    staffarray[3651] [0] = "Brown V Dr";
+    staffarray[3651] [1] = "Medical Course";
+    staffarray[3651] [2] = "Brown V Dr";
     staffarray.sort();
     var lbxObjects = Form.elements["identifier"];
     var cbxFilter = Form.elements["filter"];
