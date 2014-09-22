@@ -56,6 +56,16 @@ app.get('/api/room/:room', function(req, res){
     });
 });
 
+app.get('/api/module/:code', function(req, res){
+    API.getModule(req.params.code, function(data){
+        if(!data){ 
+            res.send(500, {error: 'Not found'});
+        }else{
+            res.send(data);
+        }
+    });
+});
+
 app.get('/api/courses/modules/username/:username', function(req, res){
     API.getCourseByUsername(req.params.username, function(data){
         if(!data){ 

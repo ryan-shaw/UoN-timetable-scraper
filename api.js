@@ -72,6 +72,13 @@ var ModuleSchema = mongoose.Schema({
 });
 var ModuleModel = mongoose.model('Modules', ModuleSchema);
 
+var IndividualModulesSchema = mongoose.Schema({
+    id: String,
+    days: Object,
+    time_stamp: {type: Date, default: Date.now}
+});
+var IndividualModulesModel = mongoose.model('individualmodules', IndividualModulesSchema);
+
 var daysGlobal = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 var url_base = 'http://uiwwwsci01.nottingham.ac.uk:8003/reporting/TextSpreadsheet;programme+of+study;id;';
 var url_top = '%0D%0A?days=1-5&weeks=1-52&periods=3-20&template=SWSCUST+programme+of+study+TextSpreadsheet&height=100&week=100';
@@ -235,6 +242,80 @@ exports.getStaffByShort = function(short, department, callback){
     });
 };
 
+var ModuleScraper = function(){
+    var scraper = {}, id, url;
+
+    var refresh = function(){
+        var deferred = Q.defer();
+        request(url, function(error, response, html){
+            if(!error){
+                var $ = cheerio.load(html);
+                var data = $('body > table');
+                var table = exports.Table();
+                table.init($, data, true); // Init table module with data
+                deferred.resolve(table.getJSON());
+                IndividualModulesModel.find({id: id}).remove().exec();
+                var newModule = new IndividualModulesModel({id: id, days: table.getJSON()});
+                newModule.save();
+                // ProgrammeModel.findOne({id: id}, function(err, course){
+                //     DepartmentModel.findOne({department_id: course.school}, function(err, department){
+                //         deferred.resolve({department: department.name, course_id: id, data: table.getJSON()});
+                //         var newCourse = new CourseModulesModel({department: department.name, course_id: id, data: table.getJSON()});
+                //         newCourse.save();
+                //     });
+                // });
+            }
+        });
+        return deferred.promise;
+    };
+
+    scraper.init = function(lId, lurl){
+        id = lId;
+        var deferred = Q.defer();
+        url = url_base + id + url_top;
+        if(lurl){
+            url = lurl;
+        }
+        IndividualModulesModel.findOne({id: id}, function(err, course){
+            if(err){
+                return deferred.reject(new Error(err));
+            }
+            if(course){
+                var now = Date.now();
+                if(now - course.time_stamp.getTime() > 1000 * 60 * 60 * 24){ // 24 hour expiry
+                    // Data is stale
+                    refresh(url).then(function(data){
+                        deferred.resolve(data);
+                    });
+                }else{
+                    // Data is fresh
+                    deferred.resolve(course.days);
+                }
+            }else{
+                // No data exists
+                refresh(url).then(function(data){
+                    deferred.resolve(data);
+                });
+            }
+        });
+        return deferred.promise;
+    };
+    return scraper;
+};
+
+exports.getModule = function(code, callback){
+    ModuleModel.findOne({code: new RegExp('^'+code+'$', 'i')}, function(err, module){
+        if(module){
+            var module = ModuleScraper().init(module.id, 'http://uiwwwsci01.nottingham.ac.uk:8003/reporting/TextSpreadsheet;module;id;'+module.id+'%0D%0A?days=1-5&weeks=1-52&periods=3-20&template=SWSCUST+module+TextSpreadsheet&height=100&week=100');    
+            module.then(function(data){
+                callback(data);
+            });
+        }else{
+            callback(null);
+        }
+    });
+};
+
 exports.getRoomInfo = function(room, callback){
     var zonesCampus = {
         'JC': 'Jubilee Campus',
@@ -311,14 +392,14 @@ exports.getCourses = function(search, callback){
 exports.Table = function(){
     var table = {}, tData, rowCount = 0, rows =[], $, days = [];
 
-    table.init = function(cheerio, data){
+    table.init = function(cheerio, data, lmodule){
         $ = cheerio;
         data = data.slice(1, data.length-1);
         data.each(function(k, v){
             if(k === 5)
                 return;
             var day = exports.Day();
-            day.init($, v);
+            day.init($, v, lmodule);
             day.setDayName(daysGlobal[k]);
             days[k] = day.getJSON();
         });
@@ -334,12 +415,12 @@ exports.Table = function(){
 exports.Day = function(){
     var day = {}, $, modules = [], dayObject = {};
     dayObject.modules = [];
-    day.init = function(cheerio, data){
+    day.init = function(cheerio, data, lmodule){
         $ = cheerio;
         var rows = $(data).find('tr').slice(1);
         rows.each(function(k, v){
             var module = exports.Module();
-            module.init($, v);
+            module.init($, v, lmodule);
             dayObject.modules.push(module.getJSON());
         });
     };
@@ -378,22 +459,36 @@ exports.Module = function(){
         return matchArr;
     };
 
-    module.init = function(cheerio, data){
+    module.init = function(cheerio, data, lmodule){
         $ = cheerio;
         var cells = $(data).find('td');
-
-        info = {
-            'code': $(cells[0]).text().split('/')[0],
-            'name': $(cells[1]).text(),
-            'type': $(cells[2]).text(),
-            'time': {
-                'start': $(cells[5]).text(),
-                'end': $(cells[6]).text()
-            },
-            'room': $(cells[8]).text(),
-            'staff': $(cells[11]).text(),
-            'weeks': getWeeks($(cells[12]).text())
-        };
+        if(lmodule){
+            info = {
+                'code': $(cells[0]).text().split('/')[0],
+                'name': $(cells[3]).text(),
+                'type': $(cells[1]).text(),
+                'time': {
+                    'start': $(cells[5]).text(),
+                    'end': $(cells[6]).text()
+                },
+                'room': $(cells[8]).text(),
+                'staff': $(cells[11]).text(),
+                'weeks': getWeeks($(cells[12]).text())
+            };
+        }else{
+            info = {
+                'code': $(cells[0]).text().split('/')[0],
+                'name': $(cells[1]).text(),
+                'type': $(cells[2]).text(),
+                'time': {
+                    'start': $(cells[5]).text(),
+                    'end': $(cells[6]).text()
+                },
+                'room': $(cells[8]).text(),
+                'staff': $(cells[11]).text(),
+                'weeks': getWeeks($(cells[12]).text())
+            };
+        }
     };
 
     module.getJSON = function(){
@@ -429,10 +524,13 @@ exports.CourseScraper = function(){
         return deferred.promise;
     };
 
-    scraper.init = function(lId){
+    scraper.init = function(lId, lurl){
         id = lId;
         var deferred = Q.defer();
         url = url_base + id + url_top;
+        if(lurl){
+            url = lurl;
+        }
         CourseModulesModel.findOne({course_id: id}, function(err, course){
             if(err){
                 return deferred.reject(new Error(err));
