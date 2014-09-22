@@ -8,7 +8,7 @@
  * Controller of the uonApp
  */
 angular.module('uonApp').controller('CourseCtrl', function ($scope, $http, $routeParams) {
-   	$http.get('http://uon-timetable-api.jit.su/api/courses/' + $routeParams.id).then(function(res){
+   	$http.get('http://uon-timetable-api.jit.su/api/courses/modules/' + $routeParams.id).then(function(res){
     	$scope.course = res.data;
     	// Combine into module list
     	$scope.modules = {};
@@ -30,6 +30,6 @@ angular.module('uonApp').controller('CourseCtrl', function ($scope, $http, $rout
     			exclude.push(module[0].code);
     		}
     	}
-    	window.location.href = 'http://uon-timetable-api.jit.su/api/courses/' + $routeParams.id +'?type=csv&exclude=' + exclude.join(',');
+    	window.location.href = 'http://uon-timetable-api.jit.su/api/courses/modules/' + $routeParams.id +'?type=csv&exclude=' + exclude.join(',');
     };
 });
