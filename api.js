@@ -452,7 +452,7 @@ exports.Module = function(){
                     matchArr.push(j);
                 }
             }else{
-                matchArr.push(result1[0]);
+                matchArr.push(parseInt(result1[0]));
             }
         }
         
