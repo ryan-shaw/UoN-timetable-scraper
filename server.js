@@ -134,6 +134,6 @@ app.get('/api/courses/((\\w+))', function(req, res){
 
 app.use(express.static(__dirname + '/dist'));
 
-app.listen('8081');
+app.listen(process.env.PORT || 8081);
 
 exports = module.exports = app;
