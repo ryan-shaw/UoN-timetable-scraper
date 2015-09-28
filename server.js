@@ -8,7 +8,7 @@ var session = require('express-session');
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var methodOverride = require('method-override');
-// API.runUpdater();
+API.runUpdater();
 app.use(logger());
 app.use(cookieParser());
 app.use(bodyParser());
@@ -37,7 +37,7 @@ app.get('/api/scrape/:id', function(req, res){
 // E.g. ?name=Wilson%20M%20Dr&department=Computer Science
 app.get('/api/staff', function(req, res){
     API.getStaffByShort(req.query.name, req.query.department, function(data){
-        if(!data){ 
+        if(!data){
             res.send(500, {error: 'Not found'});
         }else{
             res.send(data);
@@ -48,7 +48,7 @@ app.get('/api/staff', function(req, res){
 app.get('/api/room/:room', function(req, res){
     // Return further room info, including staff details, room is the room code
     API.getRoomInfo(req.params.room, function(data){
-        if(!data){ 
+        if(!data){
             res.send(500, {error: 'Not found'});
         }else{
             res.send(data);
@@ -58,7 +58,7 @@ app.get('/api/room/:room', function(req, res){
 
 app.get('/api/module/:code', function(req, res){
     API.getModule(req.params.code, function(data){
-        if(!data){ 
+        if(!data){
             res.send(500, {error: 'Not found'});
         }else{
             res.send(data);
@@ -68,7 +68,7 @@ app.get('/api/module/:code', function(req, res){
 
 app.get('/api/courses/modules/username/:username', function(req, res){
     API.getCourseByUsername(req.params.username, function(data){
-        if(!data){ 
+        if(!data){
             res.send(500, {error: 'Not found'});
         }else{
             res.send(data);
@@ -88,7 +88,7 @@ app.get('/api/courses/modules/((\\d+))', function(req, res){
             courseData.department = course.department;
             if(typeof req.query.exclude !== 'undefined'){
                 if(req.query.exclude.length > 0){
-                    
+
                     for(var i = 0; i < course.data.length; i++){
                         var newModules = [];
                         var modules = course.data[i].modules;
@@ -99,7 +99,7 @@ app.get('/api/courses/modules/((\\d+))', function(req, res){
                             }
                         }
                         course.data[i].modules = newModules;
-                    }                
+                    }
                 }
             }
             if(req.query.type === 'csv'){
@@ -107,10 +107,10 @@ app.get('/api/courses/modules/((\\d+))', function(req, res){
                 var csv = 'Subject,Start Date,Start Time,End Date,End Time,Location\n';
                 course.data.forEach(function(day, k){
                     day.modules.forEach(function(module){
-                        module.weeks.forEach(function(week){        
+                        module.weeks.forEach(function(week){
                             var weekDate = new Date(startWeek);
                             weekDate.setDate(weekDate.getDate() + (week * 7) + k);
-                            weekDate = weekDate.getDate() + '/' + (weekDate.getMonth()+1) + '/' + weekDate.getFullYear();            
+                            weekDate = weekDate.getDate() + '/' + (weekDate.getMonth()+1) + '/' + weekDate.getFullYear();
                             csv += module.name + ',' + weekDate + ',' + module.time.start + ',' + weekDate + ',' + module.time.end + ',' + module.room + '\n';
                         });
                     });
@@ -134,6 +134,6 @@ app.get('/api/courses/((\\w+))', function(req, res){
 
 app.use(express.static(__dirname + '/dist'));
 
-app.listen('80');
+app.listen('8081');
 
 exports = module.exports = app;

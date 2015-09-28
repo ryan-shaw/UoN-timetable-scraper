@@ -22,14 +22,14 @@ var Updater = function(url){
 		var parts = getParts(url);
 		var deferred = Q.defer();
 
-		// var out = fs.createWriteStream(__dirname + "/downloads/" + parts[3]);
-		// var curl = spawn('curl', [url]);
-		// curl.stdout.on('data', function(data){
-		// 	out.write(data);
-		// });
+		var out = fs.createWriteStream(__dirname + "/downloads/" + parts[3]);
+		var curl = spawn('curl', [url]);
+		curl.stdout.on('data', function(data){
+			out.write(data);
+		});
 
-		// curl.stdout.on('end', function(data){
-		// 	out.end();
+		curl.stdout.on('end', function(data){
+			out.end();
 			var content;
 	    	var rooms = [];
 	    	var courses = [];
@@ -62,7 +62,7 @@ var Updater = function(url){
 			    }
 			    deferred.resolve({rooms: rooms, courses: courses, departments: departments, modules: modules});
 			});
-		// });
+		});
 		return deferred.promise;
 	}
 
