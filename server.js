@@ -103,7 +103,7 @@ app.get('/api/courses/modules/((\\d+))', function(req, res){
                 }
             }
             if(req.query.type === 'csv'){
-                var startWeek = new Date(2014, 8, 15);
+                var startWeek = new Date(2015, 8, 14);
                 var csv = 'Subject,Start Date,Start Time,End Date,End Time,Location\n';
                 course.data.forEach(function(day, k){
                     day.modules.forEach(function(module){
