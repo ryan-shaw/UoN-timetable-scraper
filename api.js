@@ -133,7 +133,7 @@ var ZoneParser = function(){
     return parser;
 };
 
-exports.runUpdater = function(){
+exports.runUpdater = function(done){
     console.log('Downloading filters.js...\n');
     updater.getFilter().then(function(data){
         console.log('Running series updates...\n');
@@ -211,6 +211,8 @@ exports.runUpdater = function(){
             if(!err){
                 console.log('Completed updates successfully!\n');
             }
+            if(done)
+                done(err);
         });
     }, function(err){
         console.log(err);
