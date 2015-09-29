@@ -1,4 +1,5 @@
 'use strict';
+require('dotenv').load();
 require('newrelic');
 var express = require('express');
 var app     = express();
@@ -10,11 +11,16 @@ var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var methodOverride = require('method-override');
 //API.runUpdater();
-app.use(logger());
+app.use(logger('combined'));
 app.use(cookieParser());
-app.use(bodyParser());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
 app.use(methodOverride());
-app.use(session({ secret: 'keyboard cat' }));
+app.use(session({
+  secret: 'keyboard cat',
+  resave: true,
+  saveUninitialized: true
+}));
 
 app.use(function (req, res, next) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -39,7 +45,7 @@ app.get('/api/scrape/:id', function(req, res){
 app.get('/api/staff', function(req, res){
     API.getStaffByShort(req.query.name, req.query.department, function(data){
         if(!data){
-            res.send(404, {error: 'Not found'});
+            res.status(404).send({error: 'Not found'});
         }else{
             res.send(data);
         }
@@ -50,7 +56,7 @@ app.get('/api/room/:room', function(req, res){
     // Return further room info, including staff details, room is the room code
     API.getRoomInfo(req.params.room, function(data){
         if(!data){
-            res.send(404, {error: 'Not found'});
+            res.status(404).send({error: 'Not found'});
         }else{
             res.send(data);
         }
@@ -60,7 +66,7 @@ app.get('/api/room/:room', function(req, res){
 app.get('/api/module/:code', function(req, res){
     API.getModule(req.params.code, function(data){
         if(!data){
-            res.send(404, {error: 'Not found'});
+            res.status(404).send({error: 'Not found'});
         }else{
             res.send(data);
         }
@@ -70,7 +76,7 @@ app.get('/api/module/:code', function(req, res){
 app.get('/api/courses/modules/username/:username', function(req, res){
     API.getCourseByUsername(req.params.username, function(data){
         if(!data){
-            res.send(404, {error: 'Not found'});
+            res.status(404).send({error: 'Not found'});
         }else{
             res.send(data);
         }
@@ -80,7 +86,7 @@ app.get('/api/courses/modules/username/:username', function(req, res){
 app.get('/api/courses/modules/((\\d+))', function(req, res){
     API.getCourse(req.params[0], function(data){
         if(!data) {
-            return res.send(404, {error: 'Not found'});
+            return res.status(404).send({error: 'Not found'});
         }
         var courseData = {};
         courseData.name = data.name;
