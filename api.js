@@ -226,7 +226,6 @@ exports.getStaffByShort = function(short, department, callback){
                 if(err || !data || typeof data.error !== 'undefined') return callback(null);
                 if(data.meta.noResults !== 1){
                     data.results = _.filter(data.results, function(person){
-                        console.log(person);
                         return person._givenName.match(new RegExp('^' + short[1])) && person._department == department;
                     });
                 }
