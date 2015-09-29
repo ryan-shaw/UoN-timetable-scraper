@@ -9,7 +9,7 @@ var session = require('express-session');
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var methodOverride = require('method-override');
-API.runUpdater();
+//API.runUpdater();
 app.use(logger());
 app.use(cookieParser());
 app.use(bodyParser());
