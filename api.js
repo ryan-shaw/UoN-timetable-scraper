@@ -39,7 +39,8 @@ var StudentSchema = mongoose.Schema({
     username: String,
     course_id: String,
     course_year: Number,
-    course_raw: Object
+    course_raw: Object,
+    time_stamp: {type: Date, default: Date.now}
 });
 var StudentModel = mongoose.model('Students', StudentSchema);
 
@@ -341,13 +342,14 @@ exports.getRoomInfo = function(room, callback){
 
 exports.getCourseByUsername = function(username, callback){
     username = username.toLowerCase();
-    StudentModel.findOne({username: username}, function(err, student){
+    StudentModel.findOne({username: username, time_stamp: {$gte: (Date.now() - (1000 * 60 * 60 * 24))} }, function(err, student){
         if(!student){
             getJson('https://ws.nottingham.ac.uk/person-search/v1.0/student/'+username, function(err, studentData){
                 if(studentData.results.length === 0) return callback(null);
                 exports.getCourseByName(studentData.results[0]._courseName, studentData.results[0]._yearOfStudy, function(data){
                     if(!data)
                         return callback(null);
+                    StudentModel.remove({username: username});
                     student = new StudentModel({
                         first_name: studentData.results[0]._givenName,
                         surname: studentData.results[0]._surname,
