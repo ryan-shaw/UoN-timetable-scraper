@@ -39,7 +39,7 @@ app.get('/api/scrape/:id', function(req, res){
 app.get('/api/staff', function(req, res){
     API.getStaffByShort(req.query.name, req.query.department, function(data){
         if(!data){
-            res.send(500, {error: 'Not found'});
+            res.send(404, {error: 'Not found'});
         }else{
             res.send(data);
         }
@@ -50,7 +50,7 @@ app.get('/api/room/:room', function(req, res){
     // Return further room info, including staff details, room is the room code
     API.getRoomInfo(req.params.room, function(data){
         if(!data){
-            res.send(500, {error: 'Not found'});
+            res.send(404, {error: 'Not found'});
         }else{
             res.send(data);
         }
@@ -60,7 +60,7 @@ app.get('/api/room/:room', function(req, res){
 app.get('/api/module/:code', function(req, res){
     API.getModule(req.params.code, function(data){
         if(!data){
-            res.send(500, {error: 'Not found'});
+            res.send(404, {error: 'Not found'});
         }else{
             res.send(data);
         }
@@ -70,7 +70,7 @@ app.get('/api/module/:code', function(req, res){
 app.get('/api/courses/modules/username/:username', function(req, res){
     API.getCourseByUsername(req.params.username, function(data){
         if(!data){
-            res.send(500, {error: 'Not found'});
+            res.send(404, {error: 'Not found'});
         }else{
             res.send(data);
         }
@@ -80,7 +80,7 @@ app.get('/api/courses/modules/username/:username', function(req, res){
 app.get('/api/courses/modules/((\\d+))', function(req, res){
     API.getCourse(req.params[0], function(data){
         if(!data) {
-            return res.send(500, {error: 'Not found'});
+            return res.send(404, {error: 'Not found'});
         }
         var courseData = {};
         courseData.name = data.name;
