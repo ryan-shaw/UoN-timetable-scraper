@@ -4,7 +4,7 @@ var Q = require('q');
 var readline = require('readline');
 var spawn = require('child_process').spawn;
 
-var updateURL = 'uiwwwsci01.nottingham.ac.uk:8003/js/filter.js';
+var updateURL = 'uiwwwsci01.nottingham.ac.uk:8004/js/filter.js';
 
 var Updater = function(url){
 	var updater = {};
