@@ -231,6 +231,8 @@ exports.getStaffByShort = function(short, department, callback){
                         return person._givenName.match(new RegExp('^' + short[1])) && person._department == department;
                     });
                 }
+                if(data.results.length === 0)
+                    return callback(null);
                 var person = data.results[0];
                 // console.log(short);
                 person = new StaffModel({short: short.join(' '), department: person._department, first_name: person._givenName, surname: person._surname, email: person._email, username: person._username});
