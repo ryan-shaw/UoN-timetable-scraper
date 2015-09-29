@@ -306,7 +306,7 @@ var ModuleScraper = function(){
 exports.getModule = function(code, callback){
     ModuleModel.findOne({code: new RegExp('^'+code+'$', 'i')}, function(err, module){
         if(module){
-            var module = ModuleScraper().init(module.id, 'http://uiwwwsci01.nottingham.ac.uk:8004/reporting/TextSpreadsheet;module;id;'+module.id+'%0D%0A?days=1-5&weeks=1-52&periods=3-20&template=SWSCUST+module+TextSpreadsheet&height=100&week=100');    
+            var module = ModuleScraper().init(module.id, 'http://uiwwwsci01.nottingham.ac.uk:8004/reporting/TextSpreadsheet;module;id;'+module.id+'%0D%0A?days=1-5&weeks=1-52&periods=3-20&template=SWSCUST+module+TextSpreadsheet&height=100&week=100');
             module.then(function(data){
                 callback(data);
             });
@@ -452,7 +452,7 @@ exports.Module = function(){
                     matchArr.push(j);
                 }
             }else{
-                matchArr.push(result1[0]);
+                matchArr.push(parseInt(result1[0]));
             }
         }
 
