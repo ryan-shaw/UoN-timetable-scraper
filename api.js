@@ -80,7 +80,7 @@ var IndividualModulesSchema = mongoose.Schema({
 var IndividualModulesModel = mongoose.model('individualmodules', IndividualModulesSchema);
 
 var daysGlobal = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-var url_base = 'http://uiwwwsci01.nottingham.ac.uk:8003/reporting/TextSpreadsheet;programme+of+study;id;';
+var url_base = 'http://uiwwwsci01.nottingham.ac.uk:8004/reporting/TextSpreadsheet;programme+of+study;id;';
 var url_top = '%0D%0A?days=1-5&weeks=1-52&periods=3-20&template=SWSCUST+programme+of+study+TextSpreadsheet&height=100&week=100';
 
 var request = require('request');
@@ -118,13 +118,13 @@ var ZoneParser = function(){
                             return;
                         }
                         cells = $(row).find('td');
-                        var code = $(cells[0]).text().trim(); 
+                        var code = $(cells[0]).text().trim();
                         var name = $(cells[1]).text().trim();
                         new ZoneModel({
                             code: code,
                             name: name
                         }).save();
-                    });               
+                    });
                 });
                 callback();
             }
@@ -206,12 +206,12 @@ exports.runUpdater = function(){
                         callback(err);
                     }
                 });
-            } 
+            }
         ], function(err, results){
             if(!err){
                 console.log('Completed updates successfully!\n');
             }
-        });        
+        });
     }, function(err){
         console.log(err);
     });
@@ -306,7 +306,7 @@ var ModuleScraper = function(){
 exports.getModule = function(code, callback){
     ModuleModel.findOne({code: new RegExp('^'+code+'$', 'i')}, function(err, module){
         if(module){
-            var module = ModuleScraper().init(module.id, 'http://uiwwwsci01.nottingham.ac.uk:8003/reporting/TextSpreadsheet;module;id;'+module.id+'%0D%0A?days=1-5&weeks=1-52&periods=3-20&template=SWSCUST+module+TextSpreadsheet&height=100&week=100');    
+            var module = ModuleScraper().init(module.id, 'http://uiwwwsci01.nottingham.ac.uk:8004/reporting/TextSpreadsheet;module;id;'+module.id+'%0D%0A?days=1-5&weeks=1-52&periods=3-20&template=SWSCUST+module+TextSpreadsheet&height=100&week=100');    
             module.then(function(data){
                 callback(data);
             });
@@ -346,7 +346,7 @@ exports.getCourseByUsername = function(username, callback){
                     if(!data)
                         return callback(null);
                     student = new StudentModel({
-                        first_name: studentData.results[0]._givenName, 
+                        first_name: studentData.results[0]._givenName,
                         surname: studentData.results[0]._surname,
                         course_year: studentData.results[0]._yearOfStudy,
                         course_id: data.id,
@@ -362,7 +362,7 @@ exports.getCourseByUsername = function(username, callback){
             callback(student.course_raw);
         }
     });
-    
+
 };
 
 exports.getCourseByName = function(name, year, callback){
@@ -455,7 +455,7 @@ exports.Module = function(){
                 matchArr.push(result1[0]);
             }
         }
-        
+
         return matchArr;
     };
 
@@ -509,7 +509,7 @@ exports.CourseScraper = function(){
                 var data = $('body > table');
                 var table = exports.Table();
                 table.init($, data); // Init table module with data
-                
+
                 CourseModulesModel.find({course_id: id}).remove().exec();
 
                 ProgrammeModel.findOne({id: id}, function(err, course){
