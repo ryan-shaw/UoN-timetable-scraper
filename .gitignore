@@ -42,4 +42,4 @@ dist
 .tmp
 .sass-cache
 bower_components
-.bowerrc
+newrelic_agent.log
