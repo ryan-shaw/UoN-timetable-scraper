@@ -333,8 +333,9 @@ exports.getRoomInfo = function(room, callback){
     var campus = zonesCampus[splitRoom[0]];
     var actualRoom = room.substring(room.lastIndexOf('-')+1);
     room = room.substring(0, room.lastIndexOf('-'));
-    console.log(room);
     ZoneModel.findOne({code: room}, function(err, zone){
+        if(!zone || err)
+            return callback(null);
         zone.name = campus + ' ' + zone.name + ' ' + actualRoom;
         callback(zone);
     });
