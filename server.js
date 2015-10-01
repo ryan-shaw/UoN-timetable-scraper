@@ -11,6 +11,28 @@ var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var methodOverride = require('method-override');
 var verifier = require('./verifier');
+
+var ExpressBrute = require('express-brute');
+var MongoStore = require('express-brute-mongo');
+var MongoClient = require('mongodb').MongoClient;
+var store = new MongoStore(function (ready) {
+  MongoClient.connect(process.env.MONGO_URI, function(err, db) {
+    if (err) throw err;
+    ready(db.collection('bruteforce-store'));
+  });
+});
+
+var verifyBruteForce = new ExpressBrute(store, {
+    freeRetries: 0,
+    minWait: 60 * 1000,
+    proxyDepth: process.env.NODE_ENV === 'production' ? 1 : 0
+});
+
+var globalBruteForce = new ExpressBrute(store, {
+    freeRetries: 5,
+    proxyDepth: process.env.NODE_ENV === 'production' ? 1 : 0
+});
+
 //API.runUpdater();
 app.use(logger('combined'));
 app.use(cookieParser());
@@ -140,7 +162,7 @@ app.get('/api/courses/((\\w+))', function(req, res){
     });
 });
 
-app.get('/api/verify/:username', function(req, res){
+app.get('/api/verify/:username', bruteforce.prevent, function(req, res){
     API.getStudent(req.params.username, function(err, data){
         if(!err && data.results.length === 1){
             verifier.sendVerificationCode(req.params.username, function(err, json){
@@ -156,7 +178,7 @@ app.get('/api/verify/:username', function(req, res){
     });
 });
 
-app.post('/api/verify/:username', function(req, res){
+app.post('/api/verify/:username', globalBruteForce.prevent, function(req, res){
     verifier.verifyUsername(req.params.username, req.body.code, req.body.ionicId, function(err){
         if(!err){
             res.status(200).send({});
