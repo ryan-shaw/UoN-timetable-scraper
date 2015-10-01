@@ -22,6 +22,7 @@
     "passport-facebook": "~1.0.3",
     "q": "~1.0.1",
     "request": "latest",
+    "sendgrid": "^1.9.2",
     "underscore": "~1.7.0"
   },
   "scripts": {

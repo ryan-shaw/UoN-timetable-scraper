@@ -10,6 +10,7 @@ var session = require('express-session');
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var methodOverride = require('method-override');
+var verifier = require('./verifier');
 //API.runUpdater();
 app.use(logger('combined'));
 app.use(cookieParser());
@@ -136,6 +137,32 @@ app.get('/api/courses/modules/((\\d+))', function(req, res){
 app.get('/api/courses/((\\w+))', function(req, res){
     API.getCourses(req.params[0], function(data){
         res.send(data);
+    });
+});
+
+app.get('/api/verify/:username', function(req, res){
+    API.getStudent(req.params.username, function(err, data){
+        if(!err && data.results.length === 1){
+            verifier.sendVerificationCode(req.params.username, function(err, json){
+                if(!err){
+                    res.status(200).send({});
+                }else{
+                    res.status(400).send(err);
+                }
+            });
+        }else{
+            res.status(400).send(err);
+        }
+    });
+});
+
+app.post('/api/verify/:username', function(req, res){
+    verifier.verifyUsername(req.params.username, req.body.code, req.body.ionicId, function(err){
+        if(!err){
+            res.status(200).send({});
+        }else{
+            res.status(400).send(err);
+        }
     });
 });
 
