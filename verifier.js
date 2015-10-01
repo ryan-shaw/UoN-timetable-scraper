@@ -11,9 +11,18 @@ var VerificationSchema = mongoose.Schema({
 });
 var VerificationModel = mongoose.model('verification', VerificationSchema);
 
+var VerifiedSchema = mongoose.Schema({
+    username: String,
+    ionicId: String,
+    created: {type: Date, default: Date.now}
+});
+var VerifiedModel = mongoose.model('verifiedusers', VerifiedSchema);
+
+exports.verifiedModel = VerifiedModel;
+
 exports.sendVerificationCode = function(username, callback){
     var code = crypto.randomBytes(8).toString('hex');
-    //TODO: If one exists resend
+
     VerificationModel.findOne({username: username}, function(err, vUser){
         if(vUser){
             exports._sendMail(username, vUser.code, callback);
@@ -44,8 +53,17 @@ exports.verifyUsername = function(username, code, ionicId, callback){
         if(err || !vUser)
             return callback('No user found');
 
+        if(!ionicId)
+            return callback('No ionic Id specified');
+
         VerificationModel.remove();
-        //TODO: Created verified user model.
-        callback(null, vUser);
+
+        var user = new VerifiedModel({
+            username: username,
+            ionicId: ionicId
+        });
+        user.save();
+
+        callback(null, user);
     })
 };

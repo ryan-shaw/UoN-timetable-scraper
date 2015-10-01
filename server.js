@@ -33,6 +33,16 @@ var globalBruteForce = new ExpressBrute(store, {
     proxyDepth: process.env.NODE_ENV === 'production' ? 1 : 0
 });
 
+function authenticate(req, res, next){
+    var ionicId = req.query.ionicId;
+    var username = req.query.username;
+    verifier.verifiedModel.findOne({username: username, ionicId: ionicId}, function(err, user){
+        if(err || !user)
+            return res.status(401).send('Unauthorized');
+        next();
+    });
+};
+
 //API.runUpdater();
 app.use(logger('combined'));
 app.use(cookieParser());
@@ -96,7 +106,7 @@ app.get('/api/module/:code', function(req, res){
     });
 });
 
-app.get('/api/courses/modules/username/:username', function(req, res){
+app.get('/api/courses/modules/username/:username', authenticate, function(req, res){
     API.getCourseByUsername(req.params.username, function(data){
         if(!data){
             res.status(404).send({error: 'Not found'});
@@ -162,7 +172,7 @@ app.get('/api/courses/((\\w+))', function(req, res){
     });
 });
 
-app.get('/api/verify/:username', bruteforce.prevent, function(req, res){
+app.get('/api/verify/:username', verifyBruteForce.prevent, function(req, res){
     API.getStudent(req.params.username, function(err, data){
         if(!err && data.results.length === 1){
             verifier.sendVerificationCode(req.params.username, function(err, json){
