@@ -23,7 +23,7 @@ var store = new MongoStore(function (ready) {
 });
 
 var verifyBruteForce = new ExpressBrute(store, {
-    freeRetries: 0,
+    freeRetries: process.env.NODE_ENV === 'production' ? 0 : 100,
     minWait: 60 * 1000,
     proxyDepth: process.env.NODE_ENV === 'production' ? 1 : 0
 });
@@ -57,6 +57,7 @@ app.use(session({
 
 app.use(function (req, res, next) {
     res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
     next();
 });
 

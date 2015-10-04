@@ -56,7 +56,7 @@ exports.verifyUsername = function(username, code, ionicId, callback){
         if(!ionicId)
             return callback('No ionic Id specified');
 
-        VerificationModel.remove();
+        vUser.remove();
 
         var user = new VerifiedModel({
             username: username,
