@@ -61,4 +61,62 @@ describe('API functions', function(){
 				});
 		});
 	});
+
+	describe('/api/module', function(){
+		it('should find G52CPP', function(done){
+			request(app)
+				.get('/api/module/G52CPP')
+				.expect(200)
+				.end(function(err, res){
+					res.body.should.be.an.instanceOf(Array);
+					res.body.length.should.equal(5);
+					done();
+				});
+		});
+
+		it('should not find NOEXIST', function(done){
+			request(app)
+				.get('/api/module/NOEXIST')
+				.expect(404)
+				.end(function(err, res){
+					res.body.error.should.equal('Not found');
+					done();
+				});
+		});
+	});
+
+	describe('/api/courses', function(){
+		//TODO: Add tests for authorised requests
+		describe('/modules/:username', function(){
+			it('should be unauthorized', function(done){
+				request(app)
+					.get('/api/courses/modules/psyrs6')
+					.expect(401)
+					.end(function(err, res){
+						done();
+					});
+			});
+		});
+
+		describe('/modules/:id', function(){
+			it('should fetch 0219123', function(done){
+				request(app)
+					.get('/api/courses/0219123')
+					.expect(200)
+					.end(function(err, res){
+						done();
+					});
+			});
+
+			it('should not find 123', function(done){
+				request(app)
+					.get('/api/courses/123')
+					.expect(404)
+					.end(function(err, res){
+						done();
+					});
+			});
+		});
+	});
+	//TODO: Add tests for verification
 });

@@ -29,7 +29,8 @@
     "underscore": "~1.7.0"
   },
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "mocha test.js"
   },
   "subdomain": "uon-timetable-api",
   "engines": {
