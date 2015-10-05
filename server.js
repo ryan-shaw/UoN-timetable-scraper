@@ -21,7 +21,6 @@ app.use(session({
   resave: true,
   saveUninitialized: true
 }));
-app.set('trust proxy', '127.0.0.1'); 
 
 app.use(function (req, res, next) {
     res.setHeader('Access-Control-Allow-Origin', '*');
