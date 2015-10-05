@@ -346,7 +346,7 @@ exports.getCourseByUsername = function(username, callback){
     StudentModel.findOne({username: username, time_stamp: {$gte: (Date.now() - (1000 * 60 * 60 * 24))} }, function(err, student){
         if(!student){
             getJson('https://ws.nottingham.ac.uk/person-search/v1.0/student/'+username, function(err, studentData){
-                if(studentData.results.length === 0) return callback(null);
+                if(err || studentData.results.length === 0) return callback(null);
                 exports.getCourseByName(studentData.results[0]._courseName, studentData.results[0]._yearOfStudy, function(data){
                     if(!data)
                         return callback(null);
