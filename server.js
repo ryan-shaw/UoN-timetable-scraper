@@ -1,26 +1,40 @@
 'use strict';
 require('dotenv').load();
-require('newrelic');
+if(process.env.NODE_ENV === 'production')
+    require('newrelic');
 var express = require('express');
 var app     = express();
 var fs = require('fs');
 var API = require('./api.js');
 var logger = require('morgan');
 var session = require('express-session');
+var MongoStore = require('connect-mongo')(session);
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var methodOverride = require('method-override');
+var mongoose = require('mongoose');
 //API.runUpdater();
 app.use(logger('combined'));
 app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(methodOverride());
-app.use(session({
-  secret: 'keyboard cat',
-  resave: true,
-  saveUninitialized: true
-}));
+
+if(process.env.NODE_ENV === 'production'){
+    app.use(session({
+        secret: 'foo',
+        store: new MongoStore({ mongooseConnection: mongoose.connection }),
+        resave: true,
+        saveUninitialized: true
+    }));
+}else{
+    app.use(session({
+      secret: 'keyboard cat',
+      resave: true,
+      saveUninitialized: true
+    }));
+}
+
 
 app.use(function (req, res, next) {
     res.setHeader('Access-Control-Allow-Origin', '*');
