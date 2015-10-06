@@ -345,19 +345,21 @@ exports.getCourseByUsername = function(username, callback){
     username = username.toLowerCase();
     StudentModel.findOne({username: username, time_stamp: {$gte: (Date.now() - (1000 * 60 * 60 * 24))} }, function(err, student){
         if(!student){
+            StudentModel.remove({username: username});
             exports.getStudent(username, function(err, studentData){
-                if(studentData.results.length === 0) return callback(null);
-                exports.getCourseByName(studentData.results[0]._courseName, studentData.results[0]._yearOfStudy, function(data){
-                    if(!data)
+                if(err || studentData.results.length === 0) return callback(null);
+                var student = _.findWhere(studentData.results, {_username: username});
+                exports.getCourseByName(student._courseName, student._yearOfStudy, function(data){
+                     if(!data)
                         return callback(null);
                     StudentModel.remove({username: username});
                     student = new StudentModel({
-                        first_name: studentData.results[0]._givenName,
-                        surname: studentData.results[0]._surname,
-                        course_year: studentData.results[0]._yearOfStudy,
+                        first_name: student._givenName,
+                        surname: student._surname,
+                        course_year: student._yearOfStudy,
                         course_id: data.id,
-                        username: studentData.results[0]._username,
-                        email: studentData.results[0]._email,
+                        username: student._username,
+                        email: student._email,
                         course_raw: data
                     });
                     student.save();
